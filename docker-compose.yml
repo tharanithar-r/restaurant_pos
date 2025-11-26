@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./restaurant_pos_backend
+      dockerfile: Dockerfile
+    container_name: pos_backend
+    restart: unless-stopped
+    ports:
+      - "5006:5006"
+    env_file:
+      - ./restaurant_pos_backend/.env
+    networks:
+      - pos-net
+
+  frontend:
+    build:
+      context: ./restaurant_pos_frontend
+      dockerfile: Dockerfile
+    container_name: pos_frontend
+    restart: unless-stopped
+    ports:
+      - "5174:80"
+    env_file:
+      - ./restaurant_pos_frontend/.env
+    networks:
+      - pos-net
+
+networks:
+  pos-net:
+    driver: bridge
+
+volumes:
+  frontend-node-modules:

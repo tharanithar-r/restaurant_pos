@@ -1,0 +1,29 @@
+1.Process Flow:
+    Initial Order:
+        Create Cart with TableNo
+        Add Items
+        Send to OrderMaster with status ORDERED
+        Keep CartId active
+
+    Additional Orders:
+        Use existing CartId
+        Add new Items
+        Send to OrderMaster
+        Maintain CartId
+
+    Final Billing:
+        Generate bill from OrderMaster
+        Update all orders to BILLED
+        Delete CartId and items
+        Update table status
+
+2.State Management
+    Track CartId per table
+    Link all orders to same CartId
+    Use OrderMaster for status tracking
+    Delete Cart only after final billing
+
+3.Table States
+    AVAILABLE → Create new CartId
+    OCCUPIED → Use existing CartId
+    BILLED → Delete CartId

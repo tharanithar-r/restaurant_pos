@@ -1,0 +1,2552 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model account_transaction {
+  LedgerNo       Int?
+  Trans_Type     String?         @db.VarChar(25)
+  CounterName    String?         @db.VarChar(25)
+  Bill_Type      String?         @db.VarChar(25)
+  Trans_Date     DateTime?       @db.DateTime
+  AccountName    String?         @db.VarChar(50)
+  BillNo         String?         @db.VarChar(50)
+  Code           String?         @db.VarChar(50)
+  Name           String?         @db.VarChar(50)
+  Memo           String?         @db.VarChar(150)
+  Split          String?         @db.VarChar(55)
+  Debit          Float?          @default(0.00, map: "DF__account_t__Debit__038683F8") @db.Money
+  Credit         Float?          @default(0.00, map: "DF__account_t__Credi__047AA831") @db.Money
+  PmtMode        String?         @db.VarChar(15)
+  CheckNo        String?         @db.VarChar(25)
+  Status         String?         @db.VarChar(10)
+  Login          String?         @db.VarChar(15)
+  LoginName      String?         @db.VarChar(30)
+  Due_Date       DateTime?       @db.DateTime
+  SNo            Int?
+  Amount         Float?          @default(0.00, map: "DF__account_t__Amoun__056ECC6A") @db.Money
+  Balance        Float?          @default(0.00, map: "DF__account_t__Balan__0662F0A3") @db.Money
+  Area           String?         @db.VarChar(50)
+  Onlinestatus   String?         @db.VarChar(25)
+  AccType        String?         @db.VarChar(10)
+  BranchName     String?         @db.VarChar(50)
+  billingcounter billingcounter? @relation(fields: [CounterName], references: [CounterName], onDelete: NoAction, map: "FK_ACC_counter")
+  accountmaster  accountmaster?  @relation(fields: [AccountName], references: [AccountName], onDelete: NoAction, map: "FK_Act_ActNm")
+  branchmaster   branchmaster?   @relation(fields: [BranchName], references: [BranchName], onDelete: NoAction, map: "FK_users_role_map")
+
+  @@ignore
+}
+
+model accountmaster {
+  GroupName                                      String?               @db.VarChar(25)
+  AccountName                                    String                @id(map: "PK__accountm__406E0D2F6FB041B3") @db.VarChar(50)
+  SubAc                                          String?               @default("Nil", map: "DF__accountma__SubAc__5165187F") @db.VarChar(50)
+  BankAcctNo                                     String?               @db.VarChar(25)
+  ActiveStatus                                   String?               @default("Active", map: "DF__accountma__Activ__52593CB8") @db.VarChar(10)
+  LoginName                                      String?               @db.VarChar(25)
+  Type                                           String?               @db.VarChar(10)
+  Description                                    String?               @db.VarChar(50)
+  OrderBy                                        Int?                  @default(0, map: "DF__accountma__Order__534D60F1")
+  Entry_Type                                     String?               @db.VarChar(10)
+  Balance                                        Decimal?              @default(0.00, map: "DF__accountma__Balan__5441852A") @db.Decimal(19, 4)
+  GST                                            Float?
+  account_transaction                            account_transaction[] @ignore
+  MakeEntry                                      MakeEntry[]
+  Openingstock                                   Openingstock[]
+  payments_payments_DebitAccountToaccountmaster  payments[]            @relation("payments_DebitAccountToaccountmaster")
+  payments_payments_CreditAccountToaccountmaster payments[]            @relation("payments_CreditAccountToaccountmaster")
+  pendinglist                                    pendinglist[]         @ignore
+  pendingtemp                                    pendingtemp[]         @ignore
+  purchase                                       purchase[]
+  purchasereturn                                 purchasereturn[]
+  rt                                             rt[]                  @ignore
+  sales                                          sales[]
+  trs                                            trs[]                 @ignore
+}
+
+model Addressmaster {
+  Customer     BigInt    @id(map: "PK__Addressm__EC6FA1A10EAC936A")
+  CustomerName String?   @db.VarChar(50)
+  Address      String?   @db.VarChar(50)
+  City         String?   @db.VarChar(50)
+  ResPhone     String?   @db.VarChar(25)
+  Phone        String?   @db.VarChar(25)
+  Mobile       String?   @db.VarChar(25)
+  Area         String?   @db.VarChar(50)
+  ImgPhoto     Bytes?    @db.Image
+  Fax          String?   @db.VarChar(20)
+  EMail        String?   @db.VarChar(50)
+  Login        String?   @db.VarChar(25)
+  LoginName    String?   @db.VarChar(25)
+  Web          String?   @db.VarChar(50)
+  DOB          DateTime? @db.DateTime
+  DOW          DateTime? @db.DateTime
+}
+
+model Attendance {
+  RecordNo       Int
+  TransDate      DateTime        @db.DateTime
+  Sno            Int
+  EmpNo          String?         @db.VarChar(25)
+  Present        Int?            @default(0, map: "DF__Attendanc__Prese__0BB1B5A5")
+  Absent         Int?            @default(0, map: "DF__Attendanc__Absen__0CA5D9DE")
+  TransType      String?         @db.VarChar(50)
+  LoginName      String?         @db.VarChar(25)
+  AccType        String?         @db.VarChar(25)
+  BranchName     String?         @db.VarChar(50)
+  Halfday        Decimal?        @db.Decimal(18, 2)
+  PaidStatus     String?         @default("Unpaid", map: "DF__Attendanc__PaidS__515009E6") @db.VarChar(50)
+  branchmaster   branchmaster?   @relation(fields: [BranchName], references: [BranchName], onDelete: NoAction, map: "FK_ATT_br")
+  EmployeeMaster EmployeeMaster? @relation(fields: [EmpNo], references: [EmpNo], onDelete: NoAction, map: "FK_Att_Emp")
+
+  @@id([TransDate, Sno], map: "PK__Attendan__0B7DBFBD649950F4")
+}
+
+model AttendanceEntry {
+  RecdNo      Int
+  Trans_Date  DateTime @db.DateTime
+  Sno         Int
+  EmpNo       String   @db.VarChar(50)
+  StartTime   String?  @db.VarChar(50)
+  EndTime     String?  @db.VarChar(50)
+  OverTime    String?  @db.VarChar(50)
+  Halfday     Decimal? @db.Decimal(18, 1)
+  BasicSalary Decimal? @db.Decimal(16, 3)
+  OTSalary    Decimal? @db.Decimal(16, 3)
+  TotalSalary Decimal? @db.Decimal(16, 3)
+  PaidStatus  String?  @db.VarChar(20)
+  BranchName  String   @db.VarChar(50)
+  AccType     String   @db.VarChar(50)
+
+  @@id([Trans_Date, Sno, EmpNo, BranchName, AccType], map: "PK_AttendanceEntry")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model barcodedetails {
+  Columns     Int?
+  SNo         Int?
+  FormName    String? @db.VarChar(50)
+  Description String? @db.VarChar(250)
+  Fieldsname  String? @db.VarChar(50)
+  Conversion  String? @db.VarChar(10)
+  Count       String? @db.VarChar(5)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model barcodefooter {
+  Sno         Int?
+  FormName    String? @db.VarChar(50)
+  Description String? @db.VarChar(250)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model barcodeheader {
+  Columns     Int?
+  FormName    String? @db.VarChar(50)
+  Sno         Int?
+  Description String? @db.VarChar(250)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model bartemp {
+  ItemCode String? @db.VarChar(50)
+  Num      String? @db.VarChar(5)
+  System   String? @db.VarChar(50)
+  BestB    String? @db.VarChar(5)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Batchwisestock {
+  BatchStock String? @db.VarChar(50)
+
+  @@ignore
+}
+
+model billcollection {
+  Trans_Type     String          @db.VarChar(20)
+  CounterName    String          @db.VarChar(25)
+  BillNo         BigInt          @default(0, map: "DF__billcolle__BillN__10E07F16")
+  Trans_Date     DateTime?       @db.DateTime
+  Customer       BigInt?
+  WaiterName     String?         @db.VarChar(50)
+  BillAmount     Decimal?        @default(0.0000, map: "DF__billcolle__BillA__11D4A34F") @db.Decimal(19, 4)
+  Received       Decimal?        @default(0.0000, map: "DF__billcolle__Recei__12C8C788") @db.Decimal(19, 4)
+  Balance        Decimal?        @default(0.0000, map: "DF__billcolle__Balan__13BCEBC1") @db.Decimal(19, 4)
+  PaymentStatus  String?         @default("UnPaid", map: "DF__billcolle__Payme__14B10FFA") @db.VarChar(8)
+  Login          String?         @db.VarChar(15)
+  LoginName      String?         @db.VarChar(25)
+  Onlinestatus   String?         @db.VarChar(25)
+  AccType        String          @db.VarChar(15)
+  BranchName     String          @default("", map: "DF__billcolle__Branc__15A53433") @db.VarChar(50)
+  customermaster customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_billc_cust")
+  billingcounter billingcounter  @relation(fields: [CounterName], references: [CounterName], map: "FK_billCollt_counter")
+  WaiterMaster   WaiterMaster?   @relation(fields: [WaiterName], references: [WaiterName], onDelete: NoAction, map: "FK_SALES_man")
+
+  @@id([Trans_Type, CounterName, BillNo, AccType, BranchName], map: "PK__billcoll__CD6C8488F28C4D7C")
+}
+
+model billingcounter {
+  CounterName         String                @id(map: "PK__billingc__CAA72873F910FC83") @default("ShowRoom", map: "DF__billingco__Count__49C3F6B7") @db.VarChar(25)
+  Login               String?               @db.VarChar(25)
+  LoginName           String?               @default("Admin", map: "DF__billingco__Login__4AB81AF0") @db.VarChar(50)
+  Suffix              String?               @db.VarChar(25)
+  ActiveStatus        String?               @default("Yes", map: "DF__billingco__Activ__4BAC3F29") @db.VarChar(3)
+  account_transaction account_transaction[] @ignore
+  billcollection      billcollection[]
+  CreditNotes         CreditNotes[]
+  DebitNotes          DebitNotes[]
+  quotation           quotation[]
+  QuotationTerms      QuotationTerms[]
+  ReceivePayment      ReceivePayment[]
+  sales               sales[]
+  salesreturn         salesreturn[]
+}
+
+model BillType {
+  Bill_Type     String  @id(map: "PK__BillType__DA152C4F06C46A70") @db.VarChar(25)
+  AccountName   String? @db.VarChar(50)
+  ServiceCharge Float?
+}
+
+model branchmaster {
+  BranchName          String                @id(map: "PK_branchmaster") @db.VarChar(50)
+  Dealer              String?               @db.VarChar(50)
+  Address             String?               @db.VarChar(50)
+  Address1            String?               @db.VarChar(50)
+  Address2            String?               @db.VarChar(50)
+  City                String?               @db.VarChar(50)
+  PhNo                String?               @db.VarChar(12)
+  MblNo               String?               @db.VarChar(15)
+  TinNo               String?               @db.VarChar(16)
+  PostalCode          String?               @db.VarChar(10)
+  StateCode           String?               @db.VarChar(5)
+  SMSNo               String?               @db.VarChar(55)
+  Iac                 String?               @db.VarChar(15)
+  Email               String?               @db.VarChar(50)
+  WebSite             String?               @db.VarChar(50)
+  BarCode             String?               @db.VarChar(25)
+  State               String?               @db.VarChar(50)
+  BAcctName           String?               @db.VarChar(50)
+  BAcctNo             String?               @db.VarChar(50)
+  BBranchName         String?               @db.VarChar(50)
+  BIfcsCode           String?               @db.VarChar(50)
+  ComLogo             Bytes?                @db.Image
+  ComSign             Bytes?                @db.Image
+  Suffix              String?               @db.VarChar(15)
+  account_transaction account_transaction[] @ignore
+  Attendance          Attendance[]
+  deliverychelan      deliverychelan[]
+  Esales              Esales[]
+  locationtransfer    locationtransfer[]
+  Openingstock        Openingstock[]
+  OutdoorOrder        OutdoorOrder[]
+  packingmaterial     packingmaterial[]
+  paybills            paybills[]
+  payments            payments[]
+  pendinglist         pendinglist[]         @ignore
+  pendingtemp         pendingtemp[]         @ignore
+  Perfoma             Perfoma[]
+  purchase            purchase[]
+  purchaseOrder       purchaseOrder[]
+  purchasereturn      purchasereturn[]
+  quotation           quotation[]
+  QuotationTerms      QuotationTerms[]
+  ReceivePayment      ReceivePayment[]
+  sales               sales[]
+  SalesOrder          SalesOrder[]
+  salesreturn         salesreturn[]
+  stock               stock[]               @ignore
+  StockCorrection     StockCorrection[]
+  StockIssue          StockIssue[]
+  tradestock          tradestock[]          @ignore
+  userslist           userslist[]
+}
+
+model branchtransfer {
+  TransType      String    @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime? @db.DateTime
+  Trans_Time     String?   @db.VarChar(15)
+  Customer       BigInt?   @default(0, map: "DF__branchtra__Custo__1B5E0D89")
+  Sno            Int
+  ItemCode       BigInt?   @default(0, map: "DF__branchtra__ItemC__1C5231C2")
+  Qty            Float?
+  Units          String?   @db.VarChar(10)
+  UnitPer        Float?    @default(0, map: "DF__branchtra__UnitP__1D4655FB")
+  BQty           Float?    @default(0, map: "DF__branchtran__BQty__1E3A7A34")
+  Rate           Decimal?  @default(0.0000, map: "DF__branchtran__Rate__1F2E9E6D") @db.Decimal(19, 4)
+  SRate          Decimal?  @default(0.0000, map: "DF__branchtra__SRate__2022C2A6") @db.Decimal(19, 4)
+  LC             Decimal?  @db.Decimal(19, 4)
+  Amount         Decimal?  @default(0.0000, map: "DF__branchtra__Amoun__2116E6DF") @db.Decimal(19, 4)
+  Discount       Float?    @default(0, map: "DF__branchtra__Disco__220B0B18")
+  DisAmt         String?   @db.VarChar(50)
+  Tax            Float?    @default(0, map: "DF__branchtrans__Tax__22FF2F51")
+  PackingCharges Decimal?  @default(0.0000, map: "DF__branchtra__Packi__23F3538A") @db.Decimal(19, 4)
+  Labor          Decimal?  @default(0.0000, map: "DF__branchtra__Labor__24E777C3") @db.Decimal(19, 4)
+  Convenience    Decimal?  @default(0.0000, map: "DF__branchtra__Conve__25DB9BFC") @db.Decimal(19, 4)
+  RoundOff       Decimal?  @db.Decimal(19, 4)
+  LoginName      String?   @db.VarChar(25)
+  WaiterName     String?   @db.VarChar(50)
+  Delivery       String?   @db.VarChar(50)
+  EditMode       String?   @default("No", map: "DF__branchtra__EditM__26CFC035") @db.VarChar(3)
+  System         String?   @db.VarChar(25)
+  Color          String?   @db.VarChar(50)
+  AccType        String    @db.VarChar(2)
+  Location       String?   @db.VarChar(50)
+
+  @@id([TransType, BillNo, Sno, AccType], map: "PK__branchtr__167144EC254B67E6")
+}
+
+model CaptanMaster {
+  CaptanName   String       @id(map: "PK__CaptanMa__24A1AC3586E4363D") @db.VarChar(50)
+  ContactNo    String?      @db.VarChar(50)
+  Address      String?      @db.VarChar(50)
+  City         String?      @db.VarChar(25)
+  ActiveStatus String?      @default("Active", map: "DF__CaptanMas__Activ__6754599E") @db.VarChar(15)
+  Imgphoto     String?      @db.VarChar(50)
+  AccountName  String?      @db.VarChar(25)
+  LoginName    String?      @default("Administrator", map: "DF__CaptanMas__Login__68487DD7") @db.VarChar(50)
+  sales        sales[]
+  SalesOrder   SalesOrder[]
+}
+
+model Cashdenomination {
+  Trans_Date    DateTime? @db.DateTime
+  BranchName    String    @default("", map: "DF__Cashdenom__Branc__29AC2CE0") @db.VarChar(50)
+  Trans_No      Int       @default(0, map: "DF__Cashdenom__Trans__2AA05119")
+  SNo           Int       @default(0, map: "DF__Cashdenomin__SNo__2B947552")
+  Trans_Time    DateTime? @db.DateTime
+  CurrencyValue String?   @db.VarChar(50)
+  Qty           String?   @db.VarChar(25)
+  Amount        String?   @db.VarChar(25)
+  LockStatus    String?   @default("Unlock", map: "DF__Cashdenom__LockS__2C88998B") @db.VarChar(10)
+  LoginName     String?   @db.VarChar(50)
+  HandOver      String?   @db.VarChar(50)
+  TakeOver      String?   @db.VarChar(50)
+
+  @@id([Trans_No, SNo, BranchName], map: "PK__Cashdeno__A4F9998940B61B70")
+}
+
+model categorymaster {
+  Category   String       @id(map: "PK_Categorymaster") @db.VarChar(25)
+  Comm_Code  String?      @db.VarChar(25)
+  Tax        Float?       @default(0, map: "DF__categorymas__Tax__1920BF5C")
+  Sgst       Float?       @default(0, map: "DF__categoryma__Sgst__1A14E395")
+  Cgst       Float?       @default(0, map: "DF__categoryma__Cgst__1B0907CE")
+  Login      String?      @default("Admin", map: "DF__categorym__Login__1BFD2C07") @db.VarChar(50)
+  LoginName  String?      @default("Admin", map: "DF__categorym__Login__1CF15040") @db.VarChar(50)
+  itemmaster itemmaster[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model closingstock {
+  ItemCode      BigInt?
+  OQty          Float?   @default(0, map: "DF__closingsto__OQty__75C27486")
+  PQty          Float?   @default(0, map: "DF__closingsto__PQty__76B698BF")
+  PRQty         Float?   @default(0, map: "DF__closingst__PRQty__77AABCF8")
+  SQty          Float?   @default(0, map: "DF__closingsto__SQty__789EE131")
+  Free          Float?   @default(0, map: "DF__closingsto__Free__7993056A")
+  SRQty         Float?   @default(0, map: "DF__closingst__SRQty__7A8729A3")
+  LTQty         Float?   @default(0, map: "DF__closingst__LTQty__7B7B4DDC")
+  SCQty         Float?   @default(0, map: "DF__closingst__SCQty__7C6F7215")
+  PMQty         Float?   @default(0, map: "DF__closingst__PMQty__7D63964E")
+  STQty         Float?   @default(0, map: "DF__closingst__STQty__7E57BA87")
+  SIQty         Float?   @default(0, map: "DF__closingst__SIQty__7F4BDEC0")
+  OLC           Decimal? @default(0, map: "DF__closingstoc__OLC__004002F9") @db.Decimal(19, 4)
+  CLC           Decimal? @default(0, map: "DF__closingstoc__CLC__01342732") @db.Decimal(19, 4)
+  ClosingStock  Float?   @default(0, map: "DF__closingst__Closi__02284B6B")
+  LC            Decimal? @db.Decimal(19, 4)
+  System        String?  @db.VarChar(50)
+  BranchName    String?  @db.VarChar(50)
+  Location      String?  @db.VarChar(50)
+  Disper        String?  @db.VarChar(50)
+  BatchNo       String?  @db.VarChar(50)
+  MRP           Decimal? @default(0.00, map: "DF__closingstoc__MRP__031C6FA4") @db.Decimal(16, 2)
+  UnitPer       Int?     @default(1, map: "DF__closingst__UnitP__58F12BAE")
+  ClosingAmount Decimal? @default(0.00, map: "DF__closingst__Closi__5BCD9859") @db.Decimal(16, 2)
+
+  @@ignore
+}
+
+model columnsettings {
+  FormName   String  @db.VarChar(20)
+  Col        Int     @default(0, map: "DF__columnsetti__Col__2F650636")
+  Width      Int?    @default(0, map: "DF__columnset__Width__30592A6F")
+  SystemName String? @db.VarChar(25)
+
+  @@id([FormName, Col], map: "PK__columnse__8DA86C9B8A62F131")
+}
+
+model Company {
+  CompanyName      String             @id(map: "PK_Company") @db.VarChar(50)
+  BusinessType     String?            @db.VarChar(60)
+  Address          String?            @db.VarChar(50)
+  Address1         String?            @db.VarChar(50)
+  City             String?            @db.VarChar(25)
+  State            String?            @db.VarChar(25)
+  Country          String?            @db.VarChar(25)
+  PostalCode       String?            @db.VarChar(25)
+  StateCode        String?            @db.VarChar(25)
+  Tngst            String?            @db.VarChar(25)
+  SMSNo            String?            @db.VarChar(55)
+  Iac              String?            @db.VarChar(25)
+  PhoneNo          String?            @db.VarChar(50)
+  DeviceLimit      Int?               @default(0)
+  MblNo            String?            @db.VarChar(15)
+  FaxNo            String?            @db.VarChar(50)
+  PassWord         String?            @db.VarChar(25)
+  Email            String?            @db.VarChar(100)
+  WebSite          String?            @db.VarChar(100)
+  BAcctName        String?            @db.VarChar(50)
+  BAcctNo          String?            @db.VarChar(50)
+  BBranchName      String?            @db.VarChar(50)
+  BIfcsCode        String?            @db.VarChar(50)
+  StartDate        DateTime?          @db.DateTime
+  RegisteredDevice RegisteredDevice[]
+  PassWordd        String?            @db.VarChar(25)
+  EndDate          DateTime?          @db.DateTime
+  BarCode          String?            @db.VarChar(25)
+  ComLogo          Bytes?             @db.Image
+  ComSign          Bytes?             @db.Image
+  Dealer           String?            @db.VarChar(50)
+  ImgPhoto         String?            @db.VarChar(255)
+  DBName           String?            @db.VarChar(60)
+  BillOptn         String?            @db.VarChar(50)
+  salesper         Int?               @default(0, map: "DF__Company__salespe__0F975522")
+  BatchStock       String?            @db.VarChar(15)
+  FormTime         Int?               @default(0, map: "DF__Company__FormTim__108B795B")
+  Autoroundoff     String?            @default("true", map: "DF__Company__Autorou__284DF453") @db.VarChar(6)
+  PrintSplMsg      String?            @default("true", map: "DF__Company__PrintSp__2942188C") @db.VarChar(6)
+  QtyDecimal       Decimal?           @default(0, map: "DF__Company__QtyDeci__420DC656") @db.Decimal(19, 3)
+  RateDecimal      Decimal?           @default(0, map: "DF__Company__RateDec__4301EA8F") @db.Decimal(19, 3)
+}
+
+model CompanyCheck {
+  SysName String @id(map: "PK_CompanyCheck") @db.VarChar(50)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model costmaintanance {
+  Trans_Date DateTime? @db.DateTime
+  ItemCode   BigInt?   @default(0, map: "DF__costmaint__ItemC__324172E1")
+  Cost       Decimal?  @default(0.0000, map: "DF__costmainta__Cost__3335971A") @db.Decimal(19, 4)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Costmaster {
+  ItemCode   BigInt?
+  Trans_Date DateTime? @db.DateTime
+  LC         Decimal?  @db.Decimal(19, 4)
+  System     String?   @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Costmaster1 {
+  ItemCode   Int?
+  Trans_Date DateTime? @db.DateTime
+  LC         Decimal?  @db.Decimal(19, 4)
+  System     String?   @db.VarChar(50)
+
+  @@ignore
+}
+
+model CreditNotes {
+  Trans_Type     String?        @db.VarChar(50)
+  Trans_No       BigInt
+  Trans_Date     DateTime?      @db.DateTime
+  InvoiceNo      String?        @db.VarChar(25)
+  InvoiceDate    DateTime?      @db.DateTime
+  CustomerType   String?        @db.VarChar(50)
+  DocumentType   String?        @db.VarChar(50)
+  Customer       BigInt?
+  NoteType       String?        @db.VarChar(50)
+  SNo            BigInt
+  BillAmount     Decimal?       @db.Decimal(16, 2)
+  Gst            Float?
+  Cess           Float?
+  Sgst           Float?
+  Cgst           Float?
+  Igst           Float?
+  SgstAmt        Decimal?       @db.Decimal(16, 2)
+  CgstAmt        Decimal?       @db.Decimal(16, 2)
+  IgstAmt        Decimal?       @db.Decimal(16, 2)
+  CessAmt        Decimal?       @db.Decimal(16, 2)
+  CreditAccount  String?        @db.VarChar(50)
+  DebitAccount   String?        @db.VarChar(50)
+  CounterName    String         @db.VarChar(25)
+  BranchName     String         @db.VarChar(50)
+  AccType        String         @db.VarChar(3)
+  InvoiceStatus  String?        @db.VarChar(50)
+  Amount         Decimal?       @db.Decimal(16, 2)
+  SalNo          String?        @db.VarChar(50)
+  RevdIssNo      String?        @db.VarChar(50)
+  Memo           String?        @db.VarChar(250)
+  RoundOff       Decimal?       @default(0, map: "DF__CreditNot__Round__49AEE81E") @db.Decimal(16, 4)
+  billingcounter billingcounter @relation(fields: [CounterName], references: [CounterName], map: "FK_Credit_counter")
+
+  @@id([Trans_No, SNo, BranchName, CounterName, AccType], map: "PK_CreditNotes")
+}
+
+model customermaster {
+  Customer         BigInt           @id(map: "PK__customer__EC6FA1A1E00E89FC")
+  CustomerName     String?          @db.VarChar(50)
+  Address          String?          @db.VarChar(75)
+  Address1         String?          @db.VarChar(75)
+  City             String?          @db.VarChar(50)
+  State            String?          @db.VarChar(50)
+  Postal           String?          @db.VarChar(20)
+  Country          String?          @db.VarChar(25)
+  ContactPerson    String?          @db.VarChar(50)
+  Phone            String?          @db.VarChar(25)
+  Mobile           String?          @db.VarChar(25)
+  Terms            Int?
+  Limit            Decimal?         @db.Decimal(19, 4)
+  ImgPhoto         Bytes?           @db.Image
+  Fax              String?          @db.VarChar(20)
+  EMail            String?          @db.VarChar(50)
+  Login            String?          @db.VarChar(25)
+  LoginName        String?          @db.VarChar(25)
+  ActiveStatus     String?          @db.VarChar(15)
+  AccountName      String?          @db.VarChar(50)
+  TINNo            String?          @db.VarChar(25)
+  CST              String?          @db.VarChar(25)
+  IAC              String?          @db.VarChar(25)
+  Area             String?          @db.VarChar(25)
+  RateType         String?          @default("Maximum", map: "DF__customerm__RateT__571DF1D5") @db.VarChar(15)
+  Web              String?          @db.VarChar(50)
+  DOB              DateTime?        @db.DateTime
+  DOW              DateTime?        @db.DateTime
+  DeliveryName     String?          @db.VarChar(50)
+  DeliveryAddress  String?          @db.VarChar(50)
+  DeliveryAddress1 String?          @db.VarChar(50)
+  DeliveryCity     String?          @db.VarChar(50)
+  InvoiceType      String?          @default("F", map: "DF__customerm__Invoi__5812160E") @db.VarChar(50)
+  DiscountStatus   String?          @db.VarChar(25)
+  CustomerType     String?          @default("Customer", map: "DF__customerm__Custo__59063A47") @db.VarChar(25)
+  Com_Person       String?          @db.VarChar(50)
+  TaxType          String?          @default("Full Tax", map: "DF__customerm__TaxTy__59FA5E80") @db.VarChar(15)
+  PanNo            String?          @db.VarChar(50)
+  AdharNo          String?          @db.VarChar(50)
+  DState           String?          @db.VarChar(50)
+  DStateCode       String?          @db.VarChar(50)
+  StateCode        String?          @db.VarChar(50)
+  EcommNo          String?          @db.VarChar(25)
+  DCExpdays        Int?
+  Address2         String?          @db.VarChar(50)
+  DeliveryAddress2 String?          @db.VarChar(50)
+  DPin             String?          @db.VarChar(8)
+  DGSTNo           String?          @db.VarChar(25)
+  BankName         String?          @db.VarChar(50)
+  BBranchName      String?          @db.VarChar(50)
+  WhatsApp         String?          @db.VarChar(25)
+  TCS              Float?           @default(0, map: "DF__customermas__TCS__32CB82C6")
+  billcollection   billcollection[]
+  deliverychelan   deliverychelan[]
+  OutdoorOrder     OutdoorOrder[]
+  Perfoma          Perfoma[]
+  quotation        quotation[]
+  ReceivePayment   ReceivePayment[]
+  sales            sales[]
+  SalesOrder       SalesOrder[]
+  salesreturn      salesreturn[]
+  tblCart          tblCart[]
+}
+
+model DebitNotes {
+  Trans_Type     String?        @db.VarChar(10)
+  Trans_No       BigInt
+  Trans_Date     DateTime?      @db.DateTime
+  InvoiceNo      String?        @db.VarChar(25)
+  InvoiceDate    DateTime?      @db.DateTime
+  CustomerType   String?        @db.VarChar(25)
+  DocumentType   String?        @db.VarChar(50)
+  Vendor         Int?
+  NoteType       String?        @db.VarChar(25)
+  SNo            BigInt
+  BillAmount     Float?         @default(0, map: "DF__DebitNote__BillA__7C4F7684") @db.Money
+  Gst            Float?
+  Cess           Float?
+  Sgst           Float?
+  Cgst           Float?
+  Igst           Float?
+  SgstAmt        Float?         @default(0, map: "DF__DebitNote__SgstA__7D439ABD") @db.Money
+  CgstAmt        Float?         @default(0, map: "DF__DebitNote__CgstA__7E37BEF6") @db.Money
+  IgstAmt        Float?         @default(0, map: "DF__DebitNote__IgstA__7F2BE32F") @db.Money
+  CessAmt        Float?         @default(0, map: "DF__DebitNote__CessA__00200768") @db.Money
+  CreditAccount  String?        @db.VarChar(50)
+  DebitAccount   String?        @db.VarChar(50)
+  BranchName     String         @db.VarChar(50)
+  CounterName    String         @db.VarChar(25)
+  AccType        String         @db.VarChar(3)
+  DebitNo        String?        @db.VarChar(50)
+  InvoiceStatus  String?        @db.VarChar(50)
+  Amount         Float?         @default(0, map: "DF__DebitNote__Amoun__01142BA1") @db.Money
+  RoundOff       Float?         @default(0, map: "DF__DebitNote__Round__02084FDA") @db.Money
+  SalNo          String?        @db.VarChar(25)
+  RevdIssNo      String?        @db.VarChar(25)
+  Memo           String?        @db.VarChar(250)
+  billingcounter billingcounter @relation(fields: [CounterName], references: [CounterName], map: "FK_DebitNote_counter")
+
+  @@id([Trans_No, SNo, BranchName, CounterName, AccType], map: "DebitNotes_pk")
+}
+
+model defaultvalues {
+  FormName    String  @db.VarChar(50)
+  ControlName String  @db.VarChar(50)
+  val         String? @db.VarChar(50)
+  SysNamee    String  @db.VarChar(50)
+  AccType     String  @default("~", map: "DF__defaultva__AccTy__123EB7A3") @db.VarChar(50)
+
+  @@id([FormName, ControlName, SysNamee, AccType], map: "PK__defaultv__C94771AD06AA4AFA")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model deleterecord {
+  Trans_Type String?   @db.VarChar(20)
+  Trans_Date DateTime? @db.DateTime
+  Trans_Time DateTime? @db.DateTime
+  BillNo     BigInt?
+  Amount     Decimal?  @db.Decimal(19, 4)
+  LoginName  String?   @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Deletesales {
+  Trans_Type     String?   @db.VarChar(25)
+  CounterName    String    @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime? @db.DateTime
+  Trans_Time     String?   @db.VarChar(10)
+  Bill_Type      String?   @db.VarChar(10)
+  Customer       BigInt?
+  Sno            Int
+  ItemCode       BigInt?
+  Qty            Float?
+  Units          String?   @db.VarChar(10)
+  UPer           Float?
+  SQty           Float?
+  Rate           Decimal?  @db.Decimal(19, 4)
+  SRate          Decimal?  @db.Decimal(19, 4)
+  LC             Decimal?  @db.Decimal(19, 4)
+  Amount         Decimal?  @db.Decimal(19, 4)
+  Discount       Float?
+  DisAmt         Float?    @db.Money
+  Tax            Float?
+  VatAmt         Decimal?  @db.Decimal(19, 4)
+  PackingCharges Decimal?  @db.Decimal(19, 4)
+  RoundOff       Decimal?  @db.Decimal(19, 4)
+  Labor          Decimal?  @db.Decimal(19, 4)
+  Convenience    Decimal?  @db.Decimal(19, 4)
+  Login          String?   @db.VarChar(25)
+  EditMode       String?   @db.VarChar(25)
+  LoginName      String?   @db.VarChar(25)
+  AccountName    String?   @db.VarChar(50)
+  WaiterName     String?   @db.VarChar(50)
+  CaptanName     String?   @db.VarChar(50)
+  Delivery       String?   @db.VarChar(50)
+  ComPerson      String?   @db.VarChar(50)
+  InvoiceType    String?   @db.VarChar(2)
+  Rate_Type      String?   @db.VarChar(20)
+  DCNo           Int?
+  EstNo          String?   @db.VarChar(15)
+  ComPer         Float?
+  ComRs          Decimal?  @db.Decimal(19, 4)
+  System         String?   @db.VarChar(25)
+  Color          String?   @db.VarChar(50)
+  AccType        String    @db.VarChar(20)
+  Location       String?   @db.VarChar(50)
+  MRP            Decimal?  @db.Decimal(19, 4)
+  Documents      String?   @db.VarChar(100)
+  NoOfQty        String?   @db.VarChar(20)
+  BranchName     String    @db.VarChar(50)
+  AQty           Float?
+  SMPer          Decimal?  @db.Decimal(16, 3)
+  SRPer          Decimal?  @db.Decimal(16, 3)
+  BillDis        Decimal?  @db.Decimal(16, 3)
+  BillDisAmt     Decimal?  @db.Decimal(16, 2)
+  GSPrint        String?   @db.VarChar(4)
+  salesno        String?   @db.VarChar(50)
+  Onlinestatus   String?   @db.VarChar(25)
+  S_P            Decimal?  @map("S.P") @db.Decimal(16, 2)
+  PONum          String?   @db.VarChar(50)
+  ServiceChrg    Float?
+  SalOrdNo       BigInt?
+  BatchNo        String?   @db.VarChar(25)
+  SerChrgper     Float?
+  Psupply        String?   @db.VarChar(50)
+  QtyDis         Decimal?  @db.Decimal(16, 4)
+  QtyDisAmt      Decimal?  @db.Decimal(16, 4)
+  Sgst           Float?
+  Cgst           Float?
+  Igst           Float?
+  SgstAmt        Decimal?  @db.Decimal(16, 4)
+  CgstAmt        Decimal?  @db.Decimal(16, 4)
+  IgstAmt        Decimal?  @db.Decimal(16, 4)
+  FormName       String?   @db.VarChar(50)
+  DeleteDate     DateTime? @db.DateTime
+  Deletetime     String?   @db.VarChar(50)
+  TaxStatus      String?   @db.VarChar(15)
+  CessP          Decimal?  @default(0.00, map: "DF__Deletesal__CessP__22951AFD") @db.Decimal(19, 4)
+  CessAmt        Decimal?  @default(0.00, map: "DF__Deletesal__CessA__23893F36") @db.Decimal(19, 3)
+  Free           Float?    @default(0, map: "DF__Deletesale__Free__45DE573A")
+
+  @@ignore
+}
+
+model DeliveryAddress {
+  CounterName      String  @db.VarChar(25)
+  BillNo           BigInt
+  DeliveryName     String? @db.VarChar(50)
+  DeliveryAddress  String? @db.VarChar(75)
+  DeliveryAddress1 String? @db.VarChar(75)
+  DeliveryCity     String? @db.VarChar(50)
+  DState           String? @db.VarChar(50)
+  DStateCode       String? @db.VarChar(10)
+  AccType          String  @db.VarChar(20)
+
+  @@id([CounterName, BillNo, AccType], map: "PK__Delivery__4B317DC116A37750")
+}
+
+model deliverychelan {
+  Trans_Type     String          @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  Customer       BigInt?         @default(0, map: "DF__deliveryc__Custo__37FA4C37")
+  Sno            Int
+  ItemCode       BigInt?         @default(0, map: "DF__deliveryc__ItemC__38EE7070")
+  Qty            Float?
+  Units          String?         @db.VarChar(10)
+  UnitPer        Float?          @default(0, map: "DF__deliveryc__UnitP__39E294A9")
+  DQty           Float?          @default(0, map: "DF__deliverych__DQty__3AD6B8E2")
+  SQty           Float?          @default(0, map: "DF__deliverych__SQty__3BCADD1B")
+  RemQty         Float?          @default(0, map: "DF__deliveryc__RemQt__3CBF0154")
+  Rate           Decimal?        @default(0.0000, map: "DF__deliverych__Rate__3DB3258D") @db.Decimal(19, 4)
+  SRate          Decimal?        @default(0.0000, map: "DF__deliveryc__SRate__3EA749C6") @db.Decimal(19, 4)
+  LC             Decimal?        @db.Decimal(19, 4)
+  Amount         Decimal?        @default(0.0000, map: "DF__deliveryc__Amoun__3F9B6DFF") @db.Decimal(19, 4)
+  Discount       Float?          @default(0, map: "DF__deliveryc__Disco__408F9238")
+  DisAmt         Decimal?        @db.Decimal(16, 4)
+  Tax            Float?          @default(0, map: "DF__deliveryche__Tax__4183B671")
+  AQty           Decimal?        @db.Decimal(16, 3)
+  SMPer          Decimal?        @db.Decimal(16, 3)
+  SRPer          Decimal?        @db.Decimal(16, 3)
+  NoOfQty        String?         @db.VarChar(20)
+  Labor          Decimal?        @default(0.0000, map: "DF__deliveryc__Labor__4277DAAA") @db.Decimal(19, 4)
+  Convenience    Decimal?        @default(0.0000, map: "DF__deliveryc__Conve__436BFEE3") @db.Decimal(19, 4)
+  RoundOff       Decimal?        @db.Decimal(19, 4)
+  Login          String?         @db.VarChar(15)
+  LoginName      String?         @db.VarChar(25)
+  Waiter         String?         @db.VarChar(50)
+  CaptanName     String?         @db.VarChar(50)
+  Delivery       String?         @db.VarChar(50)
+  Documents      String?         @db.VarChar(50)
+  ComPerson      String?         @db.VarChar(50)
+  ComPer         Float?
+  ComRs          Decimal?        @db.Decimal(19, 4)
+  System         String?         @db.VarChar(25)
+  Color          String?         @db.VarChar(50)
+  Status         String?         @default("DC", map: "DF__deliveryc__Statu__4460231C") @db.VarChar(8)
+  AccType        String          @db.VarChar(20)
+  Location       String?         @db.VarChar(50)
+  BranchName     String          @default("", map: "DF__deliveryc__Branc__45544755") @db.VarChar(50)
+  MRP            Decimal?        @default(0.00, map: "DF__deliveryche__MRP__46486B8E") @db.Decimal(16, 2)
+  InvoiceNo      String?         @db.VarChar(25)
+  PONo           String?         @db.VarChar(25)
+  BatchNo        String?         @db.VarChar(25)
+  TransportName  String?         @db.VarChar(50)
+  VehicleNo      String?         @db.VarChar(50)
+  DDate          DateTime?       @db.DateTime
+  DLocation      String?         @db.VarChar(50)
+  Trans_Time     String?         @db.VarChar(10)
+  ImportStatus   String?         @default("Nil", map: "DF__deliveryc__Impor__3F3159AB") @db.VarChar(25)
+  SOrderNo       BigInt?
+  PurNo          BigInt?
+  TaxStatus      String?         @db.VarChar(15)
+  customermaster customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_delCha_cust")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_delCha_item")
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_delChellan_branch")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_delChellan_loc")
+
+  @@id([BillNo, Sno, AccType, BranchName], map: "PK__delivery__FDE99791A5474B93")
+}
+
+model DiscountMaster {
+  ItemCode   BigInt
+  SNo        Int
+  Qty        Int
+  Discount   Float?
+  itemmaster itemmaster @relation(fields: [ItemCode], references: [ItemCode], map: "FK_ItemDisM")
+
+  @@id([ItemCode, SNo], map: "PK__Discount__E26DE1EFAA0001D1")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model editrecord {
+  Trans_Type String?   @db.VarChar(20)
+  Trans_Date DateTime? @db.DateTime
+  Trans_Time DateTime? @db.DateTime
+  BillNo     BigInt?
+  Amount     Decimal?  @db.Decimal(19, 4)
+  LoginName  String?   @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Editsales {
+  Trans_Type     String?   @db.VarChar(25)
+  CounterName    String    @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime? @db.DateTime
+  Trans_Time     String?   @db.VarChar(10)
+  Bill_Type      String?   @db.VarChar(10)
+  Customer       BigInt?
+  Sno            Int
+  ItemCode       BigInt?
+  Qty            Float?
+  Units          String?   @db.VarChar(10)
+  UPer           Float?
+  SQty           Float?
+  Rate           Decimal?  @db.Decimal(19, 4)
+  SRate          Decimal?  @db.Decimal(19, 4)
+  LC             Decimal?  @db.Decimal(19, 4)
+  Amount         Decimal?  @db.Decimal(19, 4)
+  Discount       Float?
+  DisAmt         Float?    @db.Money
+  Tax            Float?
+  VatAmt         Decimal?  @db.Decimal(19, 4)
+  PackingCharges Decimal?  @db.Decimal(19, 4)
+  RoundOff       Decimal?  @db.Decimal(19, 4)
+  Labor          Decimal?  @db.Decimal(19, 4)
+  Convenience    Decimal?  @db.Decimal(19, 4)
+  Login          String?   @db.VarChar(25)
+  EditMode       String?   @db.VarChar(25)
+  LoginName      String?   @db.VarChar(25)
+  AccountName    String?   @db.VarChar(50)
+  Waiter         String?   @db.VarChar(50)
+  CaptanName     String?   @db.VarChar(50)
+  Delivery       String?   @db.VarChar(50)
+  ComPerson      String?   @db.VarChar(50)
+  InvoiceType    String?   @db.VarChar(2)
+  Rate_Type      String?   @db.VarChar(20)
+  DCNo           Int?
+  EstNo          String?   @db.VarChar(15)
+  ComPer         Float?
+  ComRs          Decimal?  @db.Decimal(19, 4)
+  System         String?   @db.VarChar(25)
+  Color          String?   @db.VarChar(50)
+  AccType        String    @db.VarChar(20)
+  Location       String?   @db.VarChar(50)
+  MRP            Decimal?  @db.Decimal(19, 4)
+  Documents      String?   @db.VarChar(100)
+  NoOfQty        String?   @db.VarChar(20)
+  BranchName     String    @db.VarChar(50)
+  AQty           Float?
+  SMPer          Decimal?  @db.Decimal(16, 3)
+  SRPer          Decimal?  @db.Decimal(16, 3)
+  BillDis        Decimal?  @db.Decimal(16, 3)
+  BillDisAmt     Decimal?  @db.Decimal(16, 2)
+  GSPrint        String?   @db.VarChar(4)
+  salesno        String?   @db.VarChar(50)
+  Onlinestatus   String?   @db.VarChar(25)
+  S_P            Decimal?  @map("S.P") @db.Decimal(16, 2)
+  PONum          String?   @db.VarChar(50)
+  ServiceChrg    Float?
+  SalOrdNo       BigInt?
+  BatchNo        String?   @db.VarChar(25)
+  SerChrgper     Float?
+  Psupply        String?   @db.VarChar(50)
+  QtyDis         Decimal?  @db.Decimal(16, 4)
+  QtyDisAmt      Decimal?  @db.Decimal(16, 4)
+  Sgst           Float?
+  Cgst           Float?
+  Igst           Float?
+  SgstAmt        Decimal?  @db.Decimal(16, 4)
+  CgstAmt        Decimal?  @db.Decimal(16, 4)
+  IgstAmt        Decimal?  @db.Decimal(16, 4)
+  FormName       String?   @db.VarChar(50)
+  EditDate       DateTime? @db.DateTime
+  Edittime       String?   @db.VarChar(50)
+  TaxStatus      String?   @db.VarChar(15)
+  CessP          Decimal?  @default(0.00, map: "DF__Editsales__CessP__20ACD28B") @db.Decimal(19, 4)
+  CessAmt        Decimal?  @default(0.00, map: "DF__Editsales__CessA__21A0F6C4") @db.Decimal(19, 3)
+  Free           Float?    @default(0, map: "DF__Editsales__Free__44EA3301")
+
+  @@ignore
+}
+
+model EmployeeMaster {
+  EmpNo         String       @id(map: "PK__Employee__AF2D66D3ED8A66EF") @db.VarChar(25)
+  EmpName       String       @db.VarChar(50)
+  Address       String?      @db.VarChar(50)
+  Address1      String?      @db.VarChar(50)
+  City          String?      @db.VarChar(50)
+  PinCode       String?      @db.VarChar(25)
+  Mobile        String?      @db.VarChar(25)
+  DOB           DateTime?    @db.DateTime
+  ContactPerson String?      @db.VarChar(50)
+  CPMobile      String?      @db.VarChar(25)
+  DOJ           DateTime?    @db.DateTime
+  ImgPhoto      Bytes?       @db.Image
+  Designation   String?      @db.VarChar(50)
+  BasicSalary   Decimal      @db.Decimal(16, 3)
+  LeaveSalary   Decimal?     @db.Decimal(16, 3)
+  Bonus         Decimal?     @db.Decimal(16, 3)
+  OTSalary      Decimal?     @db.Decimal(16, 3)
+  AccountName   String?      @db.VarChar(50)
+  WorkingStatus String?      @db.VarChar(15)
+  BranchName    String?      @db.VarChar(50)
+  PF            Decimal?     @db.Decimal(16, 3)
+  Attendance    Attendance[]
+}
+
+model Esales {
+  Trans_Type     String?      @db.VarChar(50)
+  BranchName     String       @db.VarChar(50)
+  BillNo         BigInt
+  Trans_Date     DateTime?    @db.DateTime
+  Customer       Int?
+  ComPerson      String?      @db.VarChar(50)
+  ServiceType    String       @db.VarChar(50)
+  Sno            Int
+  Itemcode       BigInt?
+  Qty            Float?
+  Units          String?      @db.VarChar(16)
+  Rate           Decimal?     @db.Decimal(19, 3)
+  Amount         Decimal?     @db.Decimal(19, 3)
+  DisCount       Decimal?     @db.Decimal(19, 3)
+  Advance        Decimal?     @db.Decimal(19, 3)
+  ToPay          Decimal?     @db.Decimal(19, 3)
+  Paid           Decimal?     @db.Decimal(19, 3)
+  LoginName      String?      @db.VarChar(50)
+  Remarks        String?      @db.VarChar(250)
+  DeliveryStatus String?      @db.VarChar(50)
+  AccType        String       @db.VarChar(50)
+  PersonCheck    String?      @db.VarChar(50)
+  EstDate        DateTime?    @db.DateTime
+  MDesc          String?      @db.VarChar(200)
+  branchmaster   branchmaster @relation(fields: [BranchName], references: [BranchName], map: "FK_ESales_map")
+
+  @@id([BranchName, BillNo, ServiceType, Sno, AccType], map: "PK_ESales")
+}
+
+model fieldssetting {
+  ReportName  String  @default("", map: "DF__fieldsset__Repor__5A4F643B") @db.VarChar(100)
+  Sno         Decimal @default(0, map: "DF__fieldssetti__Sno__5B438874") @db.Decimal(16, 2)
+  TableName   String? @db.VarChar(100)
+  FieldsName  String? @db.VarChar(150)
+  Description String  @default("", map: "DF__fieldsset__Descr__5C37ACAD") @db.VarChar(250)
+  DataType    String? @db.VarChar(15)
+
+  @@id([ReportName, Description], map: "PK__fieldsse__07E6E74AD658DD43")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model filter {
+  ReportType  String? @db.VarChar(20)
+  ReportName  String? @db.VarChar(50)
+  FilterName  String? @db.VarChar(25)
+  Description String? @db.VarChar(100)
+  FilterNames String? @db.VarChar(50)
+  Operator    String? @db.VarChar(50)
+  System      String? @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model filtertable {
+  SNo         Int?
+  FilterName  String? @db.VarChar(255)
+  TableName   String? @db.VarChar(50)
+  Description String? @db.VarChar(50)
+  DataType    String? @db.VarChar(25)
+  ReportName  String? @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model finalLC {
+  itemcode   String?  @db.VarChar(50)
+  rn         Int?
+  lc         Float?
+  Qty        Decimal? @db.Decimal(16, 3)
+  location   String?  @db.VarChar(50)
+  BranchName String?  @db.VarChar(50)
+  Acctype    String?  @db.VarChar(50)
+  SystemName String?  @db.VarChar(50)
+
+  @@ignore
+}
+
+model formsize {
+  FormName    String   @db.VarChar(50)
+  SysNamee    String   @db.VarChar(50)
+  topValue    Decimal  @default(0, map: "DF__formsize__topVal__0C85DE4D") @db.Decimal(18, 0)
+  leftValue   Decimal? @default(0, map: "DF__formsize__leftVa__0D7A0286") @db.Decimal(18, 0)
+  widthValue  Decimal? @default(0, map: "DF__formsize__widthV__0E6E26BF") @db.Decimal(18, 0)
+  heightValue Decimal? @default(0, map: "DF__formsize__height__0F624AF8") @db.Decimal(18, 0)
+
+  @@id([FormName, SysNamee], map: "PK__formsize__BCED39DFABE8812B")
+}
+
+model FreeMaster {
+  ItemCode     BigInt    @id(map: "PK__FreeMast__3ECC0FEB6668CE83")
+  HwQty        Float
+  FQty         Float
+  Frm_Date     DateTime? @db.DateTime
+  To_Date      DateTime? @db.DateTime
+  ActiveStatus String?   @db.VarChar(9)
+}
+
+model itemmaster {
+  Category         String             @db.VarChar(25)
+  ItemCode         BigInt             @id(map: "PK_itemmaster") @default(0, map: "DF__itemmaste__ItemC__1FCDBCEB")
+  BarCode          String?            @db.VarChar(30)
+  Make             String?            @db.VarChar(25)
+  Description      String?            @db.VarChar(100)
+  TDescription     String?            @db.VarChar(100)
+  Sizes            String?            @db.VarChar(20)
+  RackName         String?            @db.VarChar(25)
+  Plat             String?            @db.VarChar(50)
+  DealerName       String?            @db.VarChar(40)
+  RQty             Int?               @default(0, map: "DF__itemmaster__RQty__20C1E124")
+  Unit             String?            @default("Pcs", map: "DF__itemmaster__Unit__21B6055D") @db.VarChar(5)
+  Packing          Int?               @default(1, map: "DF__itemmaste__Packi__22AA2996")
+  AltUnit          String?            @default("Pcs", map: "DF__itemmaste__AltUn__239E4DCF") @db.VarChar(5)
+  UnitPer          Float?             @default(1, map: "DF__itemmaste__UnitP__24927208")
+  Cost             Decimal?           @default(0.0000, map: "DF__itemmaster__Cost__25869641") @db.Decimal(19, 4)
+  Cost1            Decimal?           @default(0.0000, map: "DF__itemmaste__Cost1__267ABA7A") @db.Decimal(19, 4)
+  PRate            Decimal?           @default(0.0000, map: "DF__itemmaste__PRate__276EDEB3") @db.Decimal(19, 4)
+  RateStatus       String?            @default("Rate", map: "DF__itemmaste__RateS__286302EC") @db.VarChar(8)
+  MaxRate          Decimal?           @default(0.0000, map: "DF__itemmaste__MaxRa__29572725") @db.Decimal(19, 4)
+  MinRate          Decimal?           @default(0.0000, map: "DF__itemmaste__MinRa__2A4B4B5E") @db.Decimal(19, 4)
+  BulkRate         Decimal?           @default(0.0000, map: "DF__itemmaste__BulkR__2B3F6F97") @db.Decimal(19, 4)
+  MRP              Decimal?           @default(0.0000, map: "DF__itemmaster__MRP__2C3393D0") @db.Decimal(19, 4)
+  TaxStatus        String?            @default("Extra", map: "DF__itemmaste__TaxSt__2D27B809") @db.VarChar(10)
+  Tax              Float?             @default(0, map: "DF__itemmaster__Tax__2E1BDC42")
+  Sgst             Float?             @default(0, map: "DF__itemmaster__Sgst__2F10007B")
+  Cgst             Float?             @default(0, map: "DF__itemmaster__Cgst__300424B4")
+  MaxDis           Float?             @default(0, map: "DF__itemmaste__MaxDi__30F848ED")
+  IncPer           Float?             @default(0, map: "DF__itemmaste__IncPe__31EC6D26")
+  ComsIncPer       Float?             @default(0.000, map: "DF__itemmaste__ComsI__32E0915F")
+  IncRs            Decimal?           @default(0.0000, map: "DF__itemmaste__IncRs__33D4B598") @db.Decimal(19, 4)
+  SpecialMessage   String?            @default("No", map: "DF__itemmaste__Speci__34C8D9D1") @db.VarChar(8)
+  Stockmaintenance String?            @default("Yes", map: "DF__itemmaste__Stock__35BCFE0A") @db.VarChar(4)
+  Ratealtration    String?            @default("No", map: "DF__itemmaste__Ratea__36B12243") @db.VarChar(4)
+  DefaultUnit      String?            @default("Yes", map: "DF__itemmaste__Defau__37A5467C") @db.VarChar(5)
+  ActiveStatus     String?            @default("Yes", map: "DF__itemmaste__Activ__38996AB5") @db.VarChar(9)
+  Login            String?            @default("Admin", map: "DF__itemmaste__Login__398D8EEE") @db.VarChar(15)
+  LoginName        String?            @default("Admin", map: "DF__itemmaste__Login__3A81B327") @db.VarChar(35)
+  StockCorrection  String?            @default("Yes", map: "DF__itemmaste__Stock__3B75D760") @db.VarChar(10)
+  WaiterPer        Decimal?           @default(0.000, map: "DF__itemmaste__Waite__3C69FB99") @db.Decimal(16, 3)
+  SalesRefPer      Decimal?           @default(0.000, map: "DF__itemmaste__Sales__3D5E1FD2") @db.Decimal(16, 3)
+  PDis             Decimal?           @default(0.000, map: "DF__itemmaster__PDis__3E52440B") @db.Decimal(16, 3)
+  Grade            String?            @db.VarChar(50)
+  Memo             String?            @db.VarChar(1000)
+  SP               Decimal?           @default(0.00, map: "DF__itemmaster__SP__3F466844") @db.Decimal(16, 2)
+  AliasName        String?            @db.VarChar(25)
+  HsnCode          String?            @db.VarChar(25)
+  AccountName      String?            @db.VarChar(50)
+  Cess             Float?
+  ItemImage        Bytes?             @db.Image
+  AltRate          Decimal?           @default(0.0000, map: "DF__itemmaste__AltRa__403A8C7D") @db.Decimal(19, 4)
+  AdiCess          Decimal?           @default(0.00, map: "DF__itemmaste__AdiCe__1AF3F935") @db.Decimal(19, 2)
+  TMPSIZES         String?            @db.VarChar(20)
+  MOQty            Int?
+  UpdateDate       DateTime?          @db.DateTime
+  UpdateTime       String?            @db.VarChar(12)
+  CartItem         CartItem[]
+  deliverychelan   deliverychelan[]
+  DiscountMaster   DiscountMaster[]
+  categorymaster   categorymaster     @relation(fields: [Category], references: [Category], map: "FK_ItemMaterCategory")
+  locationtransfer locationtransfer[]
+  Openingstock     Openingstock[]
+  OrderMaster      OrderMaster[]
+  OutdoorOrder     OutdoorOrder[]
+  packingmaterial  packingmaterial[]
+  Perfoma          Perfoma[]
+  purchase         purchase[]
+  purchaseOrder    purchaseOrder[]
+  purchasereturn   purchasereturn[]
+  quotation        quotation[]
+  sales            sales[]
+  SalesOrder       SalesOrder[]
+  salesreturn      salesreturn[]
+  StockCorrections StockCorrection[]
+  StockIssue       StockIssue[]
+  tmpstock         tmpstock[]         @ignore
+  tradestock       tradestock[]       @ignore
+}
+
+model jointable {
+  TableName  String @db.VarChar(50)
+  FieldsName String @db.VarChar(25)
+  ReportName String @default("", map: "DF__jointable__Repor__60FC61CA") @db.VarChar(50)
+
+  @@id([TableName, FieldsName, ReportName], map: "PK__jointabl__CBA5FCF2684A200E")
+}
+
+model locationmaster {
+  Location         String             @id(map: "PK__location__E55D3B11D45F8310") @db.VarChar(50)
+  Login            String?            @db.VarChar(25)
+  LoginName        String?            @default("Admin", map: "DF__locationm__Login__4E88ABD4") @db.VarChar(50)
+  deliverychelan   deliverychelan[]
+  locationtransfer locationtransfer[]
+  Openingstock     Openingstock[]
+  packingmaterial  packingmaterial[]
+  purchase         purchase[]
+  purchaseOrder    purchaseOrder[]
+  purchasereturn   purchasereturn[]
+  rt               rt[]               @ignore
+  sales            sales[]
+  salesreturn      salesreturn[]
+  StockCorrection  StockCorrection[]
+  StockIssue       StockIssue[]
+  tradestock       tradestock[]       @ignore
+}
+
+model locationtransfer {
+  Trans_Type     String          @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  Sno            Int
+  ItemCode       BigInt?
+  Location       String?         @db.VarChar(50)
+  Cost           Decimal?        @default(0.0000, map: "DF__locationtr__Cost__63D8CE75") @db.Decimal(19, 4)
+  APQty          Float?          @default(0, map: "DF__locationt__APQty__64CCF2AE")
+  ALQty          Float?          @default(0, map: "DF__locationt__ALQty__65C116E7")
+  AvailQty       Float?
+  System         String?         @db.VarChar(50)
+  LoginName      String?         @db.VarChar(50)
+  AccType        String          @db.VarChar(50)
+  BranchName     String          @default("", map: "DF__locationt__Branc__66B53B20") @db.VarChar(50)
+  Memo           String?         @db.VarChar(250)
+  MRP            Decimal?        @default(0.00, map: "DF__locationtra__MRP__67A95F59") @db.Decimal(16, 2)
+  BatchNo        String?         @db.VarChar(25)
+  LC             Decimal?        @default(0, map: "DF__locationtran__LC__2C1E8537") @db.Decimal(19, 4)
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_locTrans_br")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_locTrans_item")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_locTrans_loc")
+
+  @@id([Trans_Type, BillNo, Sno, AccType, BranchName], map: "PK__location__1D02332E3AB62E20")
+}
+
+model MakeEntry {
+  EntryNo       Int
+  Trans_Type    String?        @db.VarChar(15)
+  Trans_Date    DateTime?      @db.DateTime
+  SNo           Int
+  Debit         Decimal?       @default(0, map: "DF__MakeEntry__Debit__6D6238AF") @db.Decimal(16, 3)
+  Memo          String?        @db.VarChar(75)
+  Name          String?        @db.VarChar(50)
+  Login         String?        @db.VarChar(15)
+  LoginName     String?        @db.VarChar(35)
+  Credit        Decimal?       @default(0, map: "DF__MakeEntry__Credi__6E565CE8") @db.Decimal(16, 3)
+  BillNo        String?        @db.VarChar(50)
+  AccType       String         @db.VarChar(15)
+  BranchName    String         @db.VarChar(50)
+  accountmaster accountmaster? @relation(fields: [Name], references: [AccountName], onDelete: NoAction, map: "FK_MakeEntry_accmaster")
+
+  @@id([EntryNo, SNo, AccType, BranchName], map: "PK__MakeEntr__99619E378A7D9627")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model memorize {
+  ReportType String? @db.VarChar(25)
+  ReportName String? @db.VarChar(50)
+  TableName  String? @db.VarChar(25)
+  TransType  String? @db.VarChar(25)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model OnlineCnctn {
+  Dataconnt String @db.VarChar(50)
+
+  @@ignore
+}
+
+model Openingstock {
+  Trans_Type     String          @db.VarChar(25)
+  Vendor         BigInt?         @default(0, map: "DF__Openingst__Vendo__18EBB532")
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  Sno            Int
+  ItemCode       BigInt?         @default(0, map: "DF__Openingst__ItemC__19DFD96B")
+  Qty            Float?          @default(0, map: "DF__Openingstoc__Qty__1AD3FDA4")
+  Units          String?         @db.VarChar(5)
+  PRate          Decimal?        @default(0.0000, map: "DF__Openingst__PRate__1BC821DD") @db.Decimal(19, 4)
+  Amount         Decimal?        @default(0.00, map: "DF__Openingst__Amoun__1CBC4616") @db.Decimal(19, 2)
+  Discount       Float?          @default(0, map: "DF__Openingst__Disco__1DB06A4F")
+  DisAmt         Decimal?        @default(0.00, map: "DF__Openingst__DisAm__1EA48E88") @db.Decimal(19, 2)
+  Tax            Float?          @default(0, map: "DF__Openingstoc__Tax__1F98B2C1")
+  CGST           Float?          @default(0, map: "DF__Openingsto__CGST__208CD6FA")
+  SGST           Float?          @default(0, map: "DF__Openingsto__SGST__2180FB33")
+  IGST           Float?          @default(0, map: "DF__Openingsto__IGST__22751F6C")
+  SGSTAmt        Decimal?        @default(0.00, map: "DF__Openingst__SGSTA__236943A5") @db.Decimal(19, 2)
+  CGSTAmt        Decimal?        @default(0.00, map: "DF__Openingst__CGSTA__245D67DE") @db.Decimal(19, 2)
+  IGSTAmt        Decimal?        @default(0.00, map: "DF__Openingst__IGSTA__25518C17") @db.Decimal(19, 2)
+  LoginName      String?         @default("Admin", map: "DF__Openingst__Login__2645B050") @db.VarChar(25)
+  Account        String?         @default("0", map: "DF__Openingst__Accou__2739D489") @db.VarChar(50)
+  System         String?         @db.VarChar(50)
+  OQty           Float?          @default(0, map: "DF__Openingsto__OQty__282DF8C2")
+  AccType        String          @db.VarChar(20)
+  LC             Decimal?        @db.Decimal(19, 4)
+  Location       String?         @db.VarChar(50)
+  BranchName     String          @default("", map: "DF__Openingst__Branc__29221CFB") @db.VarChar(50)
+  BatchNo        String?         @db.VarChar(25)
+  MRP            Decimal?        @default(0.00, map: "DF__Openingstoc__MRP__2A164134") @db.Decimal(16, 2)
+  VatAmt         Decimal?        @default(0.00, map: "DF__Openingst__VatAm__2EDAF651") @db.Decimal(19, 2)
+  Margin         Decimal?        @default(0.00, map: "DF__Openingst__Margi__2A363CC5") @db.Decimal(19, 2)
+  MaxRate        Decimal?        @default(0.0000, map: "DF__Openingst__MaxRa__2B2A60FE") @db.Decimal(19, 4)
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_op_br")
+  accountmaster  accountmaster?  @relation(fields: [Account], references: [AccountName], onDelete: NoAction, map: "FK_opStk_ActNam")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_opStk_item")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_opStk_loc")
+
+  @@id([Trans_Type, BillNo, Sno, AccType, BranchName], map: "PK__Openings__1D02332E77D88AAC")
+}
+
+model OrderMaster {
+  OrderNO     BigInt
+  OrderDate   DateTime?   @db.DateTime
+  Customer    BigInt?
+  Sno         Int
+  TableNo     String      @db.VarChar(25)
+  WaiterName  String      @db.VarChar(50)
+  RateType    String      @db.VarChar(25)
+  ItemCode    BigInt?
+  Qty         Float?
+  Rate        Decimal?    @default(0, map: "DF__OrderMaste__Rate__36F11965") @db.Decimal(19, 4)
+  Amount      Decimal?    @default(0, map: "DF__OrderMast__Amoun__37E53D9E") @db.Decimal(19, 4)
+  Status      String?     @db.VarChar(25)
+  LoginName   String?     @db.VarChar(25)
+  CartId      String?
+  CreatedAt   DateTime?   @default(now())
+  UpdatedAt   DateTime?
+  itemmaster  itemmaster? @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, onUpdate: NoAction, map: "FK_OM_IM")
+  tablemaster tablemaster @relation(fields: [TableNo], references: [TableNo], onUpdate: NoAction, map: "FK_OM_TM")
+
+  @@id([OrderNO, Sno], map: "PK__OrderMas__9F3182126F12DDE3")
+}
+
+model OutdoorOrder {
+  Trans_Type        String?         @db.VarChar(25)
+  OrderNo           BigInt
+  Trans_Date        DateTime?       @db.DateTime
+  Customer          BigInt?
+  Sno               Int
+  ItemCode          BigInt?
+  DeliveryDate      DateTime?       @db.DateTime
+  DStatus           String?         @db.VarChar(20)
+  DTime             String?         @db.VarChar(10)
+  Remarks           String?         @db.VarChar(300)
+  Qty               Float?
+  Rate              Float?          @db.Money
+  SRate             Decimal?        @db.Decimal(19, 4)
+  Amount            Decimal?        @db.Decimal(19, 4)
+  Discount          Float?
+  DisAmt            Float?          @db.Money
+  GST               Float?
+  CGST              Float?
+  SGST              Float?
+  IGST              Float?
+  CGSTAmt           Decimal?        @db.Decimal(19, 4)
+  SGSTAmt           Decimal?        @db.Decimal(19, 4)
+  IGSTAmt           Decimal?        @db.Decimal(19, 4)
+  PreparationCharge Decimal?        @db.Decimal(19, 4)
+  MemberCharge      Decimal?        @db.Decimal(19, 4)
+  WaterCharge       Decimal?        @db.Decimal(19, 4)
+  RoundOff          Decimal?        @db.Decimal(19, 4)
+  WaiterName        String?         @db.VarChar(50)
+  DeliveryMode      String?         @db.VarChar(50)
+  ServiceMode       String?         @db.VarChar(50)
+  LoginName         String?         @db.VarChar(25)
+  System            String?         @db.VarChar(25)
+  BranchName        String          @db.VarChar(50)
+  branchmaster      branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_OOrder_br")
+  customermaster    customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_OOrder_Customer")
+  itemmaster        itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_OOrder_item")
+  WaiterMaster      WaiterMaster?   @relation(fields: [WaiterName], references: [WaiterName], onDelete: NoAction, map: "FK_OOrder_Waiter")
+
+  @@id([OrderNo, Sno, BranchName], map: "PK__OutdoorO__9C0881E911366662")
+}
+
+model packingmaterial {
+  Trans_Type     String          @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  Sno            Int
+  ItemCode       BigInt?         @default(0, map: "DF__packingma__ItemC__75035A77")
+  Amount         Decimal?        @default(0.0000, map: "DF__packingma__Amoun__75F77EB0") @db.Decimal(19, 4)
+  LoginName      String?         @db.VarChar(25)
+  System         String?         @db.VarChar(50)
+  APQty          Float?          @default(0, map: "DF__packingma__APQty__76EBA2E9")
+  ALQty          Float?          @default(0, map: "DF__packingma__ALQty__77DFC722")
+  LC             Decimal?        @default(0.0000, map: "DF__packingmater__LC__78D3EB5B") @db.Decimal(19, 4)
+  EditMode       String?         @default("No", map: "DF__packingma__EditM__79C80F94") @db.VarChar(3)
+  AccType        String          @db.VarChar(20)
+  Location       String?         @db.VarChar(50)
+  BranchName     String          @default("", map: "DF__packingma__Branc__7ABC33CD") @db.VarChar(50)
+  Memo           String?         @db.VarChar(250)
+  MRP            Decimal?        @default(0.00, map: "DF__packingmate__MRP__7BB05806") @db.Decimal(16, 2)
+  BatchNo        String?         @db.VarChar(25)
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_pak_br")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_pkMat_item")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_pkMat_loc")
+
+  @@id([Trans_Type, BillNo, Sno, AccType, BranchName], map: "PK__packingm__1D02332E50726903")
+}
+
+model paybills {
+  Trans_Type    String?       @db.VarChar(25)
+  Trans_No      Int           @default(0, map: "DF__paybills__Trans___0169315C")
+  Trans_Date    DateTime?     @db.DateTime
+  Vendor        Int?
+  PaymentMode   String?       @db.VarChar(50)
+  ChequeNo      String?       @db.VarChar(50)
+  Amount        Decimal?      @db.Decimal(16, 3)
+  Memo          String?       @db.VarChar(250)
+  CreditAccount String?       @db.VarChar(50)
+  DebitAccount  String?       @db.VarChar(50)
+  LoginName     String?       @db.VarChar(50)
+  AccType       String        @default("", map: "DF__paybills__AccTyp__025D5595") @db.VarChar(2)
+  BranchName    String        @default("", map: "DF__paybills__Branch__035179CE") @db.VarChar(50)
+  BillNo        String?       @db.VarChar(30)
+  BDate         DateTime?     @db.DateTime
+  Due_Date      DateTime?     @db.DateTime
+  Balance       Decimal?      @default(0, map: "DF__paybills__Balanc__542C7691") @db.Decimal(16, 3)
+  Days          Int?
+  DueAmt        Decimal?      @db.Decimal(16, 3)
+  Login         String?       @db.VarChar(25)
+  Locked        String?       @db.VarChar(25)
+  Payment       Decimal?      @db.Decimal(16, 3)
+  PaidStatus    String?       @db.VarChar(10)
+  SNo           Int           @default(0, map: "DF__paybills__SNo__04459E07")
+  Interest      Decimal?      @db.Decimal(16, 3)
+  Discount      Decimal?      @db.Decimal(16, 3)
+  branchmaster  branchmaster  @relation(fields: [BranchName], references: [BranchName], map: "FK_pBill_br")
+  Vendormaster  Vendormaster? @relation(fields: [Vendor], references: [Vendor], onDelete: NoAction, map: "FK_pBill_cust")
+
+  @@id([Trans_No, AccType, BranchName, SNo], map: "paybill_pk")
+}
+
+model payments {
+  Trans_Type                                          String?        @db.VarChar(25)
+  Trans_No                                            BigInt
+  Trans_Date                                          DateTime?      @db.DateTime
+  SNo                                                 Int            @default(0, map: "DF__payments__SNo__753864A1")
+  Vendor                                              Int?
+  DebitAccount                                        String?        @db.VarChar(50)
+  PayMode                                             String?        @db.VarChar(50)
+  CheckNo                                             String?        @db.VarChar(50)
+  CreditAccount                                       String?        @db.VarChar(50)
+  Amount                                              Decimal?       @db.Decimal(16, 3)
+  Memo                                                String?        @db.VarChar(250)
+  AccType                                             String         @default("~", map: "DF__payments__AccTyp__762C88DA") @db.VarChar(2)
+  LoginName                                           String?        @db.VarChar(50)
+  BranchName                                          String         @db.VarChar(50)
+  PRemarks                                            String?        @db.VarChar(300)
+  accountmaster_payments_DebitAccountToaccountmaster  accountmaster? @relation("payments_DebitAccountToaccountmaster", fields: [DebitAccount], references: [AccountName], onDelete: NoAction, onUpdate: NoAction, map: "FK_pay_ActNamFrm")
+  branchmaster                                        branchmaster   @relation(fields: [BranchName], references: [BranchName], map: "FK_pay_br")
+  accountmaster_payments_CreditAccountToaccountmaster accountmaster? @relation("payments_CreditAccountToaccountmaster", fields: [CreditAccount], references: [AccountName], onDelete: NoAction, map: "FK_payActNamTo")
+  Vendormaster                                        Vendormaster?  @relation(fields: [Vendor], references: [Vendor], onDelete: NoAction, map: "FK_paym_Ven")
+
+  @@id([Trans_No, SNo, AccType, BranchName], map: "payments_pk")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model pendinglist {
+  CounterName   String?        @db.VarChar(25)
+  AccountsType  String?        @db.VarChar(25)
+  AccountName   String?        @db.VarChar(50)
+  TransType     String?        @db.VarChar(20)
+  BillNo        String?        @db.VarChar(25)
+  Trans_Date    DateTime?      @db.DateTime
+  Due_Date      DateTime?      @db.DateTime
+  Balance       Decimal?       @default(0.0000, map: "DF__pendingli__Balan__08162EEB") @db.Decimal(19, 4)
+  BillAmount    Decimal?       @default(0.0000, map: "DF__pendingli__BillA__090A5324") @db.Decimal(19, 4)
+  PaidStatus    String?        @db.VarChar(8)
+  AccType       String?        @db.VarChar(10)
+  Onlinestatus  String?        @db.VarChar(50)
+  BranchName    String?        @db.VarChar(50)
+  RefNo         String?        @db.VarChar(150)
+  Days          Int?           @default(0, map: "DF__pendinglis__Days__43F60EC8")
+  Customer      BigInt?
+  accountmaster accountmaster? @relation(fields: [AccountName], references: [AccountName], onDelete: NoAction, map: "FK_pay_ActNam")
+  branchmaster  branchmaster?  @relation(fields: [BranchName], references: [BranchName], onDelete: NoAction, map: "FK_pend_br")
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model pendingtemp {
+  CounterName   String?        @db.VarChar(25)
+  AccountName   String?        @db.VarChar(50)
+  TransType     String?        @db.VarChar(20)
+  BillNo        String?        @db.VarChar(25)
+  ReturnNo      String?        @db.VarChar(25)
+  Trans_Date    DateTime?      @db.DateTime
+  Balance       Decimal?       @default(0.0000, map: "DF__pendingte__Balan__0CDAE408") @db.Decimal(19, 4)
+  AccType       String?        @db.VarChar(10)
+  BranchName    String?        @db.VarChar(50)
+  accountmaster accountmaster? @relation(fields: [AccountName], references: [AccountName], onDelete: NoAction, map: "FK_pendTemp_ActNam")
+  branchmaster  branchmaster?  @relation(fields: [BranchName], references: [BranchName], onDelete: NoAction, map: "FK_pendTemp_br")
+
+  @@ignore
+}
+
+model Perfoma {
+  Trans_Type     String          @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  AccType        String          @default("", map: "DF__Perfoma__AccType__6B24EA82") @db.VarChar(15)
+  Customer       BigInt?
+  Trans_Time     String?         @db.VarChar(15)
+  Sno            Int
+  BranchName     String          @db.VarChar(50)
+  ItemCode       BigInt?         @default(0, map: "DF__Perfoma__ItemCod__6C190EBB")
+  Qty            Float?
+  Units          String?         @db.VarChar(10)
+  UnitPer        Float?          @default(0, map: "DF__Perfoma__UnitPer__6D0D32F4")
+  SQty           Float?          @default(0, map: "DF__Perfoma__SQty__6E01572D")
+  AQty           Float?
+  Rate           Decimal?        @default(0.0000, map: "DF__Perfoma__Rate__6EF57B66") @db.Decimal(19, 4)
+  SRate          Decimal?        @default(0.0000, map: "DF__Perfoma__SRate__6FE99F9F") @db.Decimal(19, 4)
+  LC             Decimal?        @db.Decimal(19, 4)
+  Amount         Decimal?        @default(0.0000, map: "DF__Perfoma__Amount__70DDC3D8") @db.Decimal(19, 4)
+  Discount       Float?          @default(0, map: "DF__Perfoma__Discoun__71D1E811")
+  DisAmt         Decimal?        @db.Decimal(16, 4)
+  Tax            Float?          @default(0, map: "DF__Perfoma__Tax__72C60C4A")
+  Labor          Decimal?        @default(0.0000, map: "DF__Perfoma__Labor__73BA3083") @db.Decimal(19, 4)
+  Convenience    Decimal?        @default(0.0000, map: "DF__Perfoma__Conveni__74AE54BC") @db.Decimal(19, 4)
+  RoundOff       Decimal?        @db.Decimal(19, 4)
+  Login          String?         @db.VarChar(25)
+  LoginName      String?         @db.VarChar(25)
+  WaiterName     String?         @db.VarChar(50)
+  CaptanName     String?         @db.VarChar(50)
+  SMPer          Decimal?        @db.Decimal(16, 3)
+  SRPer          Decimal?        @db.Decimal(16, 3)
+  Delivery       String?         @db.VarChar(50)
+  ComPerson      String?         @db.VarChar(Max)
+  EditMode       String?         @default("No", map: "DF__Perfoma__EditMod__75A278F5") @db.VarChar(3)
+  ComPer         Float?
+  ComRs          Decimal?        @db.Decimal(19, 4)
+  System         String?         @db.VarChar(25)
+  Color          String?         @db.VarChar(50)
+  TableNo        String?         @db.VarChar(25)
+  NoOfQty        String?         @db.VarChar(20)
+  Memo           String?         @db.VarChar(500)
+  SONo           BigInt?
+  SalesNo        BigInt?
+  Sgst           Float?          @default(0, map: "DF__Perfoma__Sgst__4AA30C57")
+  Cgst           Float?          @default(0, map: "DF__Perfoma__Cgst__4B973090")
+  Igst           Float?          @default(0, map: "DF__Perfoma__Igst__4C8B54C9")
+  SgstAmt        Decimal?        @default(0.00, map: "DF__Perfoma__SgstAmt__4D7F7902") @db.Decimal(16, 4)
+  CgstAmt        Decimal?        @default(0.00, map: "DF__Perfoma__CgstAmt__4E739D3B") @db.Decimal(16, 4)
+  IgstAmt        Decimal?        @default(0.00, map: "DF__Perfoma__IgstAmt__4F67C174") @db.Decimal(16, 4)
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_per_br")
+  customermaster customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_per_cust")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_per_item")
+
+  @@id([BillNo, Sno, BranchName, AccType], map: "PK__Perfoma__7E62EE5B502974D6")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model printerdetails {
+  FormName    String? @db.VarChar(50)
+  PrinterName String? @db.VarChar(50)
+  System      String? @db.VarChar(50)
+
+  @@ignore
+}
+
+model printset {
+  Form         String  @db.VarChar(50)
+  Style        String  @default("", map: "DF__printset__Style__1293BD5E") @db.VarChar(50)
+  Type         String  @default("", map: "DF__printset__Type__1387E197") @db.VarChar(50)
+  PrintType    String? @default("Format", map: "DF__printset__PrintT__147C05D0") @db.VarChar(20)
+  ControlName  String  @db.VarChar(200)
+  ControlValue String  @default("", map: "DF__printset__Contro__15702A09") @db.VarChar(200)
+  xPos         Int?
+  yPos         Int?
+  systemname   String? @db.VarChar(50)
+  loginName    String? @db.VarChar(50)
+  Color        String? @db.VarChar(50)
+  sizes        String? @db.VarChar(50)
+  fontName     String? @db.VarChar(50)
+  FontStyle    String? @db.VarChar(50)
+  Grid         String? @db.VarChar(10)
+  width        Int?
+  height       Int?
+  Summary      String? @default("False", map: "DF__printset__Summar__16644E42") @db.VarChar(10)
+  AccType      String  @db.VarChar(25)
+  Linespace    Int?
+  ItemLine     String? @db.VarChar(6)
+  Sno          Int     @default(autoincrement())
+
+  @@id([Form, ControlName, Style, Type, ControlValue, AccType], map: "PK__printset__92234E2159703C9C")
+}
+
+model PrintTbl {
+  OrderNo     BigInt  @id(map: "PK_PrintTbl")
+  PrintStatus String? @default("No", map: "DF__PrintTbl__PrintS__7FD5EEA5") @db.VarChar(5)
+}
+
+model purchase {
+  Trans_Type          String?         @db.VarChar(50)
+  BranchName          String          @db.VarChar(50)
+  BillNo              BigInt
+  Trans_Date          DateTime?       @db.DateTime
+  Vendor              Int?            @default(0, map: "DF__purchase__Vendor__31B762FC")
+  PONo                BigInt?         @default(0, map: "DF__purchase__PONo__32AB8735")
+  Sno                 Int
+  ItemCode            BigInt?         @default(0, map: "DF__purchase__ItemCo__339FAB6E")
+  PRate               Decimal?        @default(0.0000, map: "DF__purchase__PRate__3493CFA7") @db.Decimal(19, 4)
+  Amount              Decimal?        @default(0.0000, map: "DF__purchase__Amount__3587F3E0") @db.Decimal(19, 4)
+  InvoiceNo           String?         @db.VarChar(25)
+  Discount            Float?          @default(0, map: "DF__purchase__Discou__367C1819")
+  SPDiscount          Float?          @default(0, map: "DF__purchase__SPDisc__37703C52")
+  DisAmt              Decimal?        @default(0.0000, map: "DF__purchase__DisAmt__3864608B") @db.Decimal(19, 4)
+  SPDisAmt            Decimal?        @default(0.0000, map: "DF__purchase__SPDisA__395884C4") @db.Decimal(19, 4)
+  OtherPer            Float?
+  OtherAmt            Decimal?        @db.Decimal(19, 4)
+  LC                  Decimal?        @db.Decimal(19, 4)
+  DueDate             DateTime?       @db.DateTime
+  UnitPer             Float?          @default(0, map: "DF__purchase__UnitPe__3A4CA8FD")
+  PurDate             DateTime?       @db.DateTime
+  LoginName           String?         @db.VarChar(25)
+  Account             String?         @db.VarChar(50)
+  Bill_Type           String?         @db.VarChar(10)
+  System              String?         @db.VarChar(50)
+  PQty                Float?          @default(0, map: "DF__purchase__PQty__3B40CD36")
+  Tax                 Float?          @default(0, map: "DF__purchase__Tax__3C34F16F")
+  Sgst                Float?          @default(0, map: "DF__purchase__Sgst__3D2915A8")
+  Cgst                Float?          @default(0, map: "DF__purchase__Cgst__3E1D39E1")
+  Igst                Float?          @default(0, map: "DF__purchase__Igst__3F115E1A")
+  RoundOff            Decimal?        @default(0.0000, map: "DF__purchase__RoundO__40058253") @db.Decimal(19, 4)
+  FW                  Decimal?        @default(0.0000, map: "DF__purchase__FW__40F9A68C") @db.Decimal(19, 4)
+  SgstAmt             Decimal?        @default(0.0000, map: "DF__purchase__SgstAm__41EDCAC5") @db.Decimal(19, 4)
+  CgstAmt             Decimal?        @default(0.0000, map: "DF__purchase__CgstAm__42E1EEFE") @db.Decimal(19, 4)
+  IgstAmt             Decimal?        @default(0.0000, map: "DF__purchase__IgstAm__43D61337") @db.Decimal(19, 4)
+  InvoiceType         String?         @db.VarChar(25)
+  EditMode            String?         @default("No", map: "DF__purchase__EditMo__44CA3770") @db.VarChar(3)
+  AccType             String          @db.VarChar(10)
+  Qty                 Float?
+  Units               String?         @db.VarChar(10)
+  Exp                 Float?          @default(0, map: "DF__purchase__Exp__45BE5BA9")
+  Location            String?         @db.VarChar(50)
+  TransportName       String?         @db.VarChar(50)
+  DeliveryDate        DateTime?       @db.DateTime
+  DeliveryFrom        String?         @db.VarChar(50)
+  OtherCharge         String?         @db.VarChar(50)
+  Margin              Decimal?        @db.Decimal(16, 2)
+  Max_Rate            Float?          @db.Money
+  NoOflable           Int?
+  DisRec              Decimal?        @default(0.00, map: "DF__purchase__DisRec__46B27FE2") @db.Decimal(16, 3)
+  BatchNo             String?         @db.VarChar(25)
+  MRP                 Decimal?        @default(0.00, map: "DF__purchase__MRP__47A6A41B") @db.Decimal(16, 2)
+  AdiCess             Decimal?        @default(0.00, map: "DF__purchase__AdiCes__1CDC41A7") @db.Decimal(19, 2)
+  CessP               Decimal?        @default(0.00, map: "DF__purchase__CessP__247D636F") @db.Decimal(19, 4)
+  CessAmt             Decimal?        @default(0.00, map: "DF__purchase__CessAm__257187A8") @db.Decimal(19, 3)
+  TCSAmt              Decimal?        @default(0.00, map: "DF__purchase__TCSAmt__30E33A54") @db.Decimal(19, 3)
+  TCSP                Decimal?        @default(0.00, map: "DF__purchase__TCSP__31D75E8D") @db.Decimal(19, 4)
+  Salesman            String?         @db.VarChar(50)
+  ExcRate             Decimal?        @default(0, map: "DF__purchase__ExcRat__34B3CB38") @db.Decimal(16, 4)
+  JobCardNo           BigInt?
+  SalOrdNo            BigInt?         @default(0, map: "DF__purchase__SalOrd__3E3D3572")
+  CustomerAccountName String?         @db.VarChar(70)
+  SalesNo             BigInt?
+  DCNo                BigInt?
+  Color               String?         @db.VarChar(25)
+  branchmaster        branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_pur_br")
+  itemmaster          itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_pur_item")
+  locationmaster      locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_pur_loc")
+  Vendormaster        Vendormaster?   @relation(fields: [Vendor], references: [Vendor], onDelete: NoAction, map: "FK_pur_Ven")
+  accountmaster       accountmaster?  @relation(fields: [Account], references: [AccountName], onDelete: NoAction, map: "FK_purc_ActNam")
+
+  @@id([BillNo, Sno, AccType, BranchName], map: "Purchse_pk")
+}
+
+model purchaseOrder {
+  Trans_Type           String?         @db.VarChar(50)
+  TransportName        String?         @db.VarChar(50)
+  BillNo               BigInt
+  Trans_Date           DateTime?       @db.DateTime
+  Vendor               Int?            @default(0, map: "DF__purchaseO__Vendo__3DE82FB7")
+  Sno                  Int
+  ItemCode             BigInt?         @default(0, map: "DF__purchaseO__ItemC__3EDC53F0")
+  PRate                Decimal?        @default(0.0000, map: "DF__purchaseO__PRate__3FD07829") @db.Decimal(19, 4)
+  Amount               Decimal?        @default(0.0000, map: "DF__purchaseO__Amoun__40C49C62") @db.Decimal(19, 4)
+  RefNo                String?         @db.VarChar(25)
+  Discount             Float?          @default(0, map: "DF__purchaseO__Disco__41B8C09B")
+  SPDiscount           Float?          @default(0, map: "DF__purchaseO__SPDis__42ACE4D4")
+  DisAmt               Decimal?        @default(0.0000, map: "DF__purchaseO__DisAm__43A1090D") @db.Decimal(19, 4)
+  SPDisAmt             Decimal?        @default(0.0000, map: "DF__purchaseO__SPDis__44952D46") @db.Decimal(19, 4)
+  OtherPer             Float?
+  OtherAmt             Decimal?        @db.Decimal(19, 4)
+  LC                   Decimal?        @db.Decimal(19, 4)
+  DueDate              DateTime?       @db.DateTime
+  UnitPer              Float?          @default(0, map: "DF__purchaseO__UnitP__4589517F")
+  PurDate              DateTime?       @db.DateTime
+  LoginName            String?         @db.VarChar(25)
+  System               String?         @db.VarChar(50)
+  PQty                 Float?          @default(0, map: "DF__purchaseOr__PQty__467D75B8")
+  Tax                  Float?          @default(0, map: "DF__purchaseOrd__Tax__477199F1")
+  RoundOff             Decimal?        @default(0.0000, map: "DF__purchaseO__Round__4865BE2A") @db.Decimal(19, 4)
+  FW                   Decimal?        @default(0.0000, map: "DF__purchaseOrde__FW__4959E263") @db.Decimal(19, 4)
+  EditMode             String?         @default("No", map: "DF__purchaseO__EditM__4A4E069C") @db.VarChar(3)
+  AccType              String          @db.VarChar(10)
+  Qty                  Float?
+  Units                String?         @db.VarChar(10)
+  Exp                  Float?          @default(0, map: "DF__purchaseOrd__Exp__4B422AD5")
+  Location             String?         @db.VarChar(50)
+  DeliveryDate         DateTime?       @db.DateTime
+  DeliveryFrom         String?         @db.VarChar(50)
+  BranchName           String          @default("", map: "DF__purchaseO__Branc__4C364F0E") @db.VarChar(50)
+  OtherCharge          String?         @db.VarChar(50)
+  Margin               Decimal?        @db.Decimal(16, 2)
+  Max_Rate             Float?          @db.Money
+  NoOflable            Int?
+  NetAmount            Decimal?        @default(0.000, map: "DF__purchaseO__NetAm__4D2A7347") @db.Decimal(16, 3)
+  Login                String?         @db.VarChar(25)
+  BatchNo              String?         @db.VarChar(50)
+  MRP                  Decimal?        @default(0.00, map: "DF__purchaseOrd__MRP__4E1E9780") @db.Decimal(16, 2)
+  SalOrdNo             BigInt?         @default(0, map: "DF__purchaseO__SalOr__4F12BBB9")
+  ReceiveQty           Float?          @default(0, map: "DF__purchaseO__Recei__5006DFF2")
+  InvoiceNo            String?         @db.VarChar(25)
+  PurQty               Float?          @default(0, map: "DF__purchaseO__PurQt__3B60C8C7")
+  RemQty               Float?          @default(0, map: "DF__purchaseO__RemQt__3D491139")
+  CustomerAccountNames String?         @db.VarChar(70)
+  Color                String?         @db.VarChar(50)
+  branchmaster         branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_purord_br")
+  itemmaster           itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_purord_item")
+  locationmaster       locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_purord_loc")
+  Vendormaster         Vendormaster?   @relation(fields: [Vendor], references: [Vendor], onDelete: NoAction, map: "FK_purord_Ven")
+
+  @@id([BillNo, Sno, AccType, BranchName], map: "PK__purchase__FDE99791D36ED25D")
+}
+
+model purchasereturn {
+  Trans_Type      String          @db.VarChar(25)
+  BillNo          BigInt
+  Trans_Date      DateTime?       @db.DateTime
+  Sno             Int
+  ItemCode        BigInt?         @default(0, map: "DF__purchaser__ItemC__7849DB76")
+  Qty             Float?
+  Units           String?         @db.VarChar(10)
+  UnitPer         Float?          @default(0, map: "DF__purchaser__UnitP__793DFFAF")
+  PRQty           Float?          @default(0, map: "DF__purchaser__PRQty__7A3223E8")
+  PRate           Decimal?        @default(0.0000, map: "DF__purchaser__PRate__7B264821") @db.Decimal(19, 4)
+  Amount          Decimal?        @default(0.000, map: "DF__purchaser__Amoun__7C1A6C5A") @db.Decimal(19, 3)
+  Vendor          Int?            @default(0, map: "DF__purchaser__Vendo__7D0E9093")
+  InvoiceNo       Int?            @default(0, map: "DF__purchaser__RefNo__7E02B4CC")
+  Discount        Float?          @default(0, map: "DF__purchaser__Disco__7EF6D905")
+  Sgst            Float?          @default(0, map: "DF__purchasere__Sgst__7FEAFD3E")
+  Cgst            Float?          @default(0, map: "DF__purchasere__Cgst__00DF2177")
+  Igst            Float?          @default(0, map: "DF__purchasere__Igst__01D345B0")
+  DisAmt          Decimal?        @default(0.0000, map: "DF__purchaser__DisAm__02C769E9") @db.Decimal(19, 4)
+  SgstAmt         Decimal?        @default(0.0000, map: "DF__purchaser__SgstA__03BB8E22") @db.Decimal(19, 4)
+  CgstAmt         Decimal?        @default(0.0000, map: "DF__purchaser__CgstA__04AFB25B") @db.Decimal(19, 4)
+  IgstAmt         Decimal?        @default(0.0000, map: "DF__purchaser__IgstA__05A3D694") @db.Decimal(19, 4)
+  SPDiscount      Float?
+  SPDisAmt        Decimal?        @default(0.0000, map: "DF__purchaser__SPDis__0697FACD") @db.Decimal(19, 4)
+  NetAmount       Decimal?        @default(0.0000, map: "DF__purchaser__NetAm__078C1F06") @db.Decimal(19, 4)
+  LoginName       String?         @db.VarChar(25)
+  Account         String?         @db.VarChar(50)
+  Bill_Type       String?         @db.VarChar(10)
+  System          String?         @db.VarChar(50)
+  Tax             Float?          @default(0, map: "DF__purchaseret__Tax__0880433F")
+  RoundOff        Float?          @default(0.00, map: "DF__purchaser__Round__09746778") @db.Money
+  FW              Float?          @default(0.00, map: "DF__purchaseretu__FW__0A688BB1") @db.Money
+  LC              Decimal?        @db.Decimal(16, 3)
+  InvoiceType     String?         @db.VarChar(25)
+  AccType         String          @db.VarChar(20)
+  Location        String?         @db.VarChar(50)
+  BranchName      String          @default("", map: "DF__purchaser__Branc__0B5CAFEA") @db.VarChar(50)
+  MRP             Decimal?        @default(0.00, map: "DF__purchaseret__MRP__0C50D423") @db.Decimal(16, 2)
+  BatchNo         String?         @db.VarChar(25)
+  TCSP            Decimal?        @default(0.00, map: "DF__purchasere__TCSP__2D12A970") @db.Decimal(19, 4)
+  TcsAmt          Decimal?        @default(0.00, map: "DF__purchaser__TcsAm__2E06CDA9") @db.Decimal(19, 3)
+  ReasonIssueNote String?         @db.VarChar(25)
+  NoteType        String?         @db.VarChar(25)
+  CessAmt         Decimal?        @default(0, map: "DF__purchaser__CessA__35A7EF71") @db.Decimal(16, 2)
+  DCNoteNo        String?         @db.VarChar(25)
+  DCNoteDate      String?         @db.VarChar(11)
+  InvoiceDate     DateTime?       @db.Date
+  accountmaster   accountmaster?  @relation(fields: [Account], references: [AccountName], onDelete: NoAction, map: "FK_purcRet_ActNam")
+  branchmaster    branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_purRet_br")
+  itemmaster      itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_purRET_item")
+  locationmaster  locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_purRET_loc")
+  Vendormaster    Vendormaster?   @relation(fields: [Vendor], references: [Vendor], onDelete: NoAction, map: "FK_purRET_Ven")
+
+  @@id([Trans_Type, BillNo, Sno, AccType, BranchName], map: "purRT_pk")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model quickshow {
+  Formname    String? @db.VarChar(50)
+  Showstatus  String? @db.VarChar(50)
+  Trans_Types String? @db.VarChar(50)
+
+  @@ignore
+}
+
+model quotation {
+  Trans_Type     String          @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  AccType        String          @default("", map: "DF__quotation__AccTy__56B3DD81") @db.VarChar(15)
+  Customer       BigInt?         @default(0, map: "DF__quotation__Custo__57A801BA")
+  Trans_Time     String?         @db.VarChar(15)
+  Sno            Int
+  CounterName    String          @db.VarChar(25)
+  BranchName     String          @default("", map: "DF__quotation__Branc__589C25F3") @db.VarChar(50)
+  ItemCode       BigInt?         @default(0, map: "DF__quotation__ItemC__59904A2C")
+  Qty            Float?
+  Units          String?         @db.VarChar(10)
+  UnitPer        Float?          @default(0, map: "DF__quotation__UnitP__5A846E65")
+  SQty           Float?          @default(0, map: "DF__quotation__SQty__5B78929E")
+  AQty           Float?
+  Rate           Decimal?        @default(0.0000, map: "DF__quotation__Rate__5C6CB6D7") @db.Decimal(19, 4)
+  SRate          Decimal?        @default(0.0000, map: "DF__quotation__SRate__5D60DB10") @db.Decimal(19, 4)
+  LC             Decimal?        @db.Decimal(19, 4)
+  Amount         Decimal?        @default(0.0000, map: "DF__quotation__Amoun__5E54FF49") @db.Decimal(19, 4)
+  Discount       Float?          @default(0, map: "DF__quotation__Disco__5F492382")
+  DisAmt         Decimal?        @db.Decimal(16, 3)
+  Tax            Float?          @default(0, map: "DF__quotation__Tax__603D47BB")
+  PackingCharges Decimal?        @default(0.0000, map: "DF__quotation__Packi__61316BF4") @db.Decimal(19, 4)
+  Labor          Decimal?        @default(0.0000, map: "DF__quotation__Labor__6225902D") @db.Decimal(19, 4)
+  Convenience    Decimal?        @default(0.0000, map: "DF__quotation__Conve__6319B466") @db.Decimal(19, 4)
+  RoundOff       Decimal?        @db.Decimal(19, 4)
+  Margin         Decimal?        @db.Decimal(16, 3)
+  Login          String?         @db.VarChar(25)
+  LoginName      String?         @db.VarChar(25)
+  WaiterName     String?         @db.VarChar(50)
+  CaptanName     String?         @db.VarChar(50)
+  SMPer          Decimal?        @db.Decimal(16, 3)
+  Sgst           Float?          @default(0, map: "DF__quotation__Sgst__640DD89F")
+  Cgst           Float?          @default(0, map: "DF__quotation__Cgst__6501FCD8")
+  Igst           Float?          @default(0, map: "DF__quotation__Igst__65F62111")
+  SgstAmt        Decimal?        @default(0.00, map: "DF__quotation__SgstA__66EA454A") @db.Decimal(16, 4)
+  CgstAmt        Decimal?        @default(0.00, map: "DF__quotation__CgstA__67DE6983") @db.Decimal(16, 4)
+  IgstAmt        Decimal?        @default(0.00, map: "DF__quotation__IgstA__68D28DBC") @db.Decimal(16, 4)
+  SRPer          Decimal?        @db.Decimal(16, 3)
+  Delivery       String?         @db.VarChar(50)
+  ComPerson      String?         @db.VarChar(250)
+  EditMode       String?         @default("No", map: "DF__quotation__EditM__69C6B1F5") @db.VarChar(3)
+  ComPer         Float?
+  ComRs          Decimal?        @db.Decimal(19, 4)
+  System         String?         @db.VarChar(25)
+  Color          String?         @db.VarChar(50)
+  TableNo        String?         @db.VarChar(25)
+  NoOfQty        String?         @db.VarChar(20)
+  InvoiceNo      BigInt?
+  Nos            String?         @db.VarChar(25)
+  SlNo           String?         @db.VarChar(5)
+  Received       Decimal?        @default(0, map: "DF__quotation__Recei__39788055") @db.Decimal(16, 2)
+  SalesMan       String?         @db.VarChar(50)
+  SalesRepName   String?         @db.VarChar(50)
+  TaxStatus      String?         @db.VarChar(15)
+  MRP            Decimal?        @default(0.00, map: "DF__quotation__MRP__5CC1BC92") @db.Decimal(16, 4)
+  Memo           String?         @db.VarChar(500)
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_quo_br")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_quo_item")
+  billingcounter billingcounter  @relation(fields: [CounterName], references: [CounterName], map: "FK_quot_counter")
+  customermaster customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_quot_cust")
+
+  @@id([BillNo, Sno, BranchName, AccType], map: "quot_pk")
+}
+
+model QuotationTerms {
+  BillNo         BigInt
+  Terms          String?        @db.VarChar(1000)
+  BranchName     String         @default("", map: "DF__Quotation__Branc__7073AF84") @db.VarChar(50)
+  CounterName    String         @db.VarChar(25)
+  branchmaster   branchmaster   @relation(fields: [BranchName], references: [BranchName], map: "FK_Term_br")
+  billingcounter billingcounter @relation(fields: [CounterName], references: [CounterName], map: "FK_Term_counter")
+
+  @@id([BillNo, BranchName, CounterName], map: "QuotTerms_pk")
+}
+
+model ratecode {
+  Num   String? @db.VarChar(5)
+  Chars String  @id(map: "PK__ratecode__97A46CE97F350AC2") @db.VarChar(5)
+}
+
+model ReceivePayment {
+  Trans_Type               String?         @db.VarChar(25)
+  Trans_No                 Int
+  Trans_Date               DateTime?       @db.DateTime
+  Customer                 BigInt?
+  PaymentMode              String?         @db.VarChar(50)
+  ChequeNo                 String?         @db.VarChar(50)
+  Amount                   Decimal?        @db.Decimal(16, 3)
+  Memo                     String?         @db.VarChar(350)
+  DebitAccount             String?         @db.VarChar(50)
+  CreditAccount            String?         @db.VarChar(50)
+  LoginName                String?         @db.VarChar(50)
+  Login                    String?         @db.VarChar(25)
+  Locked                   String?         @db.VarChar(25)
+  AccType                  String          @default("~", map: "DF__ReceivePa__AccTy__7CD98669") @db.VarChar(15)
+  BranchName               String          @default("Main", map: "DF__ReceivePa__Branc__7DCDAAA2") @db.VarChar(50)
+  BillNo                   String?         @db.VarChar(20)
+  BDate                    DateTime?       @db.DateTime
+  Due_Date                 DateTime?       @db.DateTime
+  Balance                  Decimal?        @default(0, map: "DF__ReceivePa__Balan__55209ACA") @db.Decimal(16, 3)
+  Days                     Int?
+  DueAmt                   Decimal?        @db.Decimal(16, 3)
+  Payment                  Decimal?        @db.Decimal(16, 3)
+  PaidStatus               String?         @db.VarChar(10)
+  SNo                      Int             @default(0, map: "DF__ReceivePaym__SNo__7EC1CEDB")
+  CounterName              String          @db.VarChar(25)
+  IssueDate                String?         @db.VarChar(15)
+  Customer_Bank_BranchName String?         @db.VarChar(250)
+  Customer_BankName        String?         @db.VarChar(250)
+  TDS                      Decimal?        @db.Decimal(16, 3)
+  Discount                 Decimal?        @db.Decimal(16, 3)
+  branchmaster             branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_rec_br")
+  billingcounter           billingcounter  @relation(fields: [CounterName], references: [CounterName], map: "FK_rec_counter")
+  customermaster           customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_rec_cust")
+
+  @@id([Trans_No, AccType, BranchName, SNo], map: "Recipay_pk")
+}
+
+model relationtable {
+  ReportName String @db.VarChar(50)
+  TableName  String @db.VarChar(25)
+
+  @@id([ReportName, TableName], map: "PK__relation__743E39C874020143")
+}
+
+model remind {
+  RemindNo    Int       @id(map: "PK__remind__C087AD61DA0509CD") @default(0, map: "DF__remind__RemindNo__1E05700A")
+  Subject     String?   @db.VarChar(50)
+  Remind_Date DateTime? @db.DateTime
+  StartFrom   Int?      @default(0, map: "DF__remind__StartFro__1EF99443")
+  Status      String?   @default("Remind", map: "DF__remind__Status__1FEDB87C") @db.VarChar(25)
+  Login       String?   @db.VarChar(15)
+  LoginName   String?   @db.VarChar(25)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model reorderqty {
+  ItemCode    BigInt?
+  ItemName    String? @db.VarChar(50)
+  description String? @db.VarChar(50)
+  Sizee       String? @db.VarChar(50)
+  Rqty        Int?
+  AQty        Int?
+  Branchname  String? @db.VarChar(50)
+  Sysnamee    String? @db.VarChar(50)
+  Loginname   String? @db.VarChar(50)
+  Trans_Types String? @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model rt {
+  AccountName    String?         @db.VarChar(50)
+  Type           String?         @db.VarChar(15)
+  Location       String?         @db.VarChar(50)
+  Route          String?         @db.VarChar(50)
+  DSR            String?         @db.VarChar(50)
+  Balance        Decimal?        @default(0.0000, map: "DF__rt__Balance__2882FE7D") @db.Decimal(19, 4)
+  accountmaster  accountmaster?  @relation(fields: [AccountName], references: [AccountName], onDelete: NoAction, map: "FK_rt_ActNam")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_rt_loc")
+
+  @@ignore
+}
+
+model SalaryGenerate {
+  RecdNo      Int
+  StartDate   DateTime? @db.DateTime
+  EndDate     DateTime? @db.DateTime
+  Sno         Int
+  EmpNo       String?   @db.VarChar(50)
+  BasicSalary Decimal?  @db.Decimal(16, 3)
+  OTSalary    Decimal?  @db.Decimal(16, 3)
+  advance     Decimal?  @db.Decimal(16, 3)
+  BranchName  String    @db.VarChar(50)
+  AccType     String    @db.VarChar(50)
+  Present     Decimal?  @default(0, map: "DF__SalaryGen__Prese__52442E1F") @db.Decimal(18, 2)
+  Absent      Decimal?  @default(0, map: "DF__SalaryGen__Absen__53385258") @db.Decimal(18, 2)
+  TotalSalary Decimal?  @default(0.00, map: "DF__SalaryGen__Total__5614BF03") @db.Decimal(16, 2)
+  Bonus       Decimal?  @default(0.00, map: "DF__SalaryGen__Bonus__5708E33C") @db.Decimal(16, 2)
+  PF          Decimal?  @default(0.00, map: "DF__SalaryGenera__PF__57FD0775") @db.Decimal(16, 2)
+
+  @@id([RecdNo, Sno, BranchName, AccType], map: "PK_SalaryGenerate")
+}
+
+model sales {
+  Trans_Type     String?         @db.VarChar(25)
+  CounterName    String          @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  Trans_Time     String?         @db.VarChar(15)
+  Bill_Type      String?         @db.VarChar(10)
+  Customer       BigInt?
+  Sno            Int
+  ItemCode       BigInt?
+  Qty            Float?          @default(0, map: "DF__sales__Qty__4F47C5E3")
+  Units          String?         @db.VarChar(10)
+  UPer           Float?          @default(0, map: "DF__sales__UPer__503BEA1C")
+  SQty           Float?          @default(0, map: "DF__sales__SQty__51300E55")
+  Free           Float?          @default(0, map: "DF__sales__Free__5224328E")
+  Rate           Decimal?        @default(0.0000, map: "DF__sales__Rate__531856C7") @db.Decimal(19, 4)
+  SRate          Decimal?        @default(0.0000, map: "DF__sales__SRate__540C7B00") @db.Decimal(19, 4)
+  LC             Decimal?        @db.Decimal(19, 4)
+  Amount         Decimal?        @default(0.000, map: "DF__sales__Amount__55009F39") @db.Decimal(19, 3)
+  Discount       Float?          @default(0, map: "DF__sales__Discount__55F4C372")
+  DisAmt         Float?          @default(0, map: "DF__sales__DisAmt__56E8E7AB") @db.Money
+  Tax            Float?          @default(0, map: "DF__sales__Tax__57DD0BE4")
+  Sgst           Float?          @default(0, map: "DF__sales__Sgst__58D1301D")
+  Cgst           Float?          @default(0, map: "DF__sales__Cgst__59C55456")
+  Igst           Float?          @default(0, map: "DF__sales__Igst__5AB9788F")
+  SgstAmt        Decimal?        @default(0.0000, map: "DF__sales__SgstAmt__5BAD9CC8") @db.Decimal(19, 4)
+  CgstAmt        Decimal?        @default(0.0000, map: "DF__sales__CgstAmt__5CA1C101") @db.Decimal(19, 4)
+  IgstAmt        Decimal?        @default(0.0000, map: "DF__sales__IgstAmt__5D95E53A") @db.Decimal(19, 4)
+  PackingCharges Decimal?        @default(0.0000, map: "DF__sales__PackingCh__5E8A0973") @db.Decimal(19, 4)
+  RoundOff       Decimal?        @db.Decimal(19, 4)
+  Labor          Decimal?        @default(0.0000, map: "DF__sales__Labor__5F7E2DAC") @db.Decimal(19, 4)
+  Convenience    Decimal?        @default(0.0000, map: "DF__sales__Convenien__607251E5") @db.Decimal(19, 4)
+  Login          String?         @db.VarChar(25)
+  EditMode       String?         @db.VarChar(25)
+  LoginName      String?         @db.VarChar(25)
+  AccountName    String?         @db.VarChar(50)
+  WaiterName     String?         @db.VarChar(50)
+  CaptanName     String?         @db.VarChar(50)
+  Delivery       String?         @db.VarChar(50)
+  ComPerson      String?         @db.VarChar(50)
+  InvoiceType    String?         @db.VarChar(2)
+  Rate_Type      String?         @default("Maximum", map: "DF__sales__Rate_Type__6166761E") @db.VarChar(20)
+  DCNo           BigInt?
+  EstNo          String?         @db.VarChar(15)
+  ComPer         Float?
+  SerChrgper     Float?
+  ServiceChrg    Float?
+  SalOrdNo       BigInt?
+  EWayBill       String?         @db.VarChar(25)
+  System         String?         @db.VarChar(25)
+  Color          String?         @db.VarChar(300)
+  AccType        String          @db.VarChar(20)
+  Location       String?         @db.VarChar(50)
+  MRP            Decimal?        @default(0.0000, map: "DF__sales__MRP__625A9A57") @db.Decimal(19, 4)
+  QtyDis         Decimal?        @default(0.0000, map: "DF__sales__QtyDis__634EBE90") @db.Decimal(19, 4)
+  QtyDisAmt      Decimal?        @default(0.0000, map: "DF__sales__QtyDisAmt__6442E2C9") @db.Decimal(19, 4)
+  TableNo        String?         @db.VarChar(25)
+  BranchName     String          @default("", map: "DF__sales__BranchNam__65370702") @db.VarChar(50)
+  AQty           Float?          @default(0.000, map: "DF__sales__AQty__662B2B3B")
+  SMPer          Decimal?        @default(0.000, map: "DF__sales__SMPer__671F4F74") @db.Decimal(16, 3)
+  SRPer          Decimal?        @default(0.000, map: "DF__sales__SRPer__681373AD") @db.Decimal(16, 3)
+  BillDis        Decimal?        @default(0.000, map: "DF__sales__BillDis__690797E6") @db.Decimal(16, 3)
+  BillDisAmt     Decimal?        @default(0.00, map: "DF__sales__BillDisAm__69FBBC1F") @db.Decimal(16, 2)
+  GSPrint        String?         @default("No", map: "DF__sales__GSPrint__6AEFE058") @db.VarChar(4)
+  salesno        String?         @db.VarChar(50)
+  Onlinestatus   String?         @db.VarChar(25)
+  Psupply        String?         @db.VarChar(50)
+  S_P            Decimal?        @default(0.00, map: "DF__sales__S.P__6BE40491") @map("S.P") @db.Decimal(16, 2)
+  TaxStatus      String?         @db.VarChar(15)
+  Importstatus   String?         @db.VarChar(50)
+  BatchNo        String?         @db.VarChar(25)
+  NetValue       Float?          @default(0, map: "DF__sales__NetValue__6CD828CA") @db.Money
+  IssueNo        BigInt?
+  AdiCess        Decimal?        @default(0.00, map: "DF__sales__AdiCess__1BE81D6E") @db.Decimal(19, 2)
+  CessP          Decimal?        @default(0.00, map: "DF__sales__CessP__1EC48A19") @db.Decimal(19, 4)
+  CessAmt        Decimal?        @default(0.00, map: "DF__sales__CessAmt__1FB8AE52") @db.Decimal(19, 3)
+  Nos            String?         @db.VarChar(25)
+  TcsAmt         Decimal?        @default(0.00, map: "DF__sales__TcsAmt__2EFAF1E2") @db.Decimal(19, 3)
+  TCSP           Decimal?        @default(0.00, map: "DF__sales__TCSP__2FEF161B") @db.Decimal(19, 4)
+  DeliveryDate   DateTime?       @db.Date
+  JobCardNo      BigInt?
+  QNo            BigInt?
+  PurNo          BigInt?
+  PerfomaNo      BigInt?
+  FormName       String?         @db.VarChar(50)
+  PONum          String?         @db.VarChar(100)
+  accountmaster  accountmaster?  @relation(fields: [AccountName], references: [AccountName], onDelete: NoAction, map: "FK_Sales_ActNam")
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_sales_br")
+  billingcounter billingcounter  @relation(fields: [CounterName], references: [CounterName], map: "FK_SALES_counter")
+  customermaster customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_sales_cust")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_Sales_item")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_sales_loc")
+  CaptanMaster   CaptanMaster?   @relation(fields: [CaptanName], references: [CaptanName], onDelete: NoAction, map: "FK_SALES_SalesREp")
+  tablemaster    tablemaster?    @relation(fields: [TableNo], references: [TableNo], onDelete: NoAction, map: "FK_Sales_Table")
+  WaiterMaster   WaiterMaster?   @relation(fields: [WaiterName], references: [WaiterName], onDelete: NoAction, map: "FK_Sales_WaiterMaster")
+
+  @@id([CounterName, BillNo, Sno, AccType, BranchName], map: "PK__sales__C579B10A85451A9D")
+}
+
+model SalesOrder {
+  Trans_Type     String?         @db.VarChar(25)
+  SONo           BigInt
+  QNo            BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  SO_Date        DateTime?       @db.DateTime
+  Customer       BigInt?
+  Sno            Int
+  ItemCode       BigInt?
+  Qty            Float?
+  PQty           Float?
+  Units          String?         @db.VarChar(10)
+  UPer           Float?
+  SOQty          Float?
+  Rate           Float?          @db.Money
+  SRate          Decimal?        @db.Decimal(19, 4)
+  LC             Decimal?        @db.Decimal(19, 4)
+  Amount         Decimal?        @db.Decimal(19, 4)
+  Discount       Float?
+  DisAmt         Float?          @db.Money
+  Tax            Float?
+  VatAmt         Decimal?        @db.Decimal(19, 4)
+  PackingCharges Decimal?        @db.Decimal(19, 4)
+  RoundOff       Decimal?        @db.Decimal(19, 4)
+  Labor          Decimal?        @db.Decimal(19, 4)
+  Convenience    Decimal?        @db.Decimal(19, 4)
+  Login          String?         @db.VarChar(25)
+  EditMode       String?         @db.VarChar(25)
+  LoginName      String?         @db.VarChar(25)
+  WaiterName     String?         @db.VarChar(50)
+  CaptanName     String?         @db.VarChar(50)
+  Delivery       String?         @db.VarChar(50)
+  System         String?         @db.VarChar(25)
+  Color          String?         @db.VarChar(50)
+  AccType        String          @db.VarChar(20)
+  Location       String?         @db.VarChar(50)
+  MRP            Decimal?        @db.Decimal(19, 4)
+  Documents      String?         @db.VarChar(100)
+  NoOfQty        String?         @db.VarChar(20)
+  BranchName     String          @db.VarChar(50)
+  AQty           Float?
+  SMPer          Decimal?        @db.Decimal(16, 3)
+  SRPer          Decimal?        @db.Decimal(16, 3)
+  BillDis        Decimal?        @db.Decimal(16, 3)
+  BillDisAmt     Decimal?        @db.Decimal(16, 2)
+  GSPrint        String?         @db.VarChar(4)
+  InvoiceNo      BigInt?
+  Onlinestatus   String?         @db.VarChar(25)
+  PONO           String?         @default("NIL", map: "DF__SalesOrder__PONO__2DB1C7EE") @db.VarChar(25)
+  PurNO          String?         @default("NIL", map: "DF__SalesOrde__PurNO__2EA5EC27") @db.VarChar(25)
+  SalesNO        String?         @default("NIL", map: "DF__SalesOrde__Sales__2F9A1060") @db.VarChar(50)
+  DCNO           String?         @default("NIL", map: "DF__SalesOrder__DCNO__308E3499") @db.VarChar(25)
+  DCQty          Float?          @default(0, map: "DF__SalesOrde__DCQty__3A6CA48E")
+  RemQty         Float?          @default(0, map: "DF__SalesOrde__RemQt__3C54ED00")
+  CPoNo          String?         @db.VarChar(100)
+  VPoNo          BigInt?
+  MobSONo        String?         @db.VarChar(15)
+  BatchNo        String?         @db.VarChar(50)
+  ReminQty       Float?          @default(0, map: "DF__SalesOrde__Remin__5AD97420")
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_salesord_br")
+  CaptanMaster   CaptanMaster?   @relation(fields: [CaptanName], references: [CaptanName], onDelete: NoAction, map: "FK_salesord_CaptanMaster")
+  customermaster customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_salesord_Customer")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_salesord_item")
+  WaiterMaster   WaiterMaster?   @relation(fields: [WaiterName], references: [WaiterName], onDelete: NoAction, map: "FK_salesord_WaiterMaster")
+
+  @@id([SONo, Sno, AccType, BranchName], map: "PK__SalesOrd__4BE438A58C24305A")
+}
+
+model salesreturn {
+  Trans_Type      String?         @db.VarChar(25)
+  BillNo          BigInt
+  Trans_Date      DateTime?       @db.DateTime
+  Trans_Time      String?         @db.VarChar(15)
+  Sno             Int
+  InvoiceType     String?         @db.VarChar(2)
+  Bill_Type       String?         @db.VarChar(10)
+  Customer        BigInt?         @default(0, map: "DF__salesretu__Custo__13F1F5EB")
+  ItemCode        BigInt?         @default(0, map: "DF__salesretu__ItemC__14E61A24")
+  Qty             Float?
+  Units           String?         @db.VarChar(10)
+  UnitPer         Float?          @default(0, map: "DF__salesretu__UnitP__15DA3E5D")
+  SRQty           Decimal?        @default(0.000, map: "DF__salesretu__SRQty__16CE6296") @db.Decimal(16, 3)
+  Rate            Decimal?        @db.Decimal(16, 3)
+  SRate           Decimal?        @default(0.0000, map: "DF__salesretu__SRate__17C286CF") @db.Decimal(19, 4)
+  DCNo            Int?
+  Amount          Decimal?        @default(0.0000, map: "DF__salesretu__Amoun__18B6AB08") @db.Decimal(19, 4)
+  Discount        Float?          @default(0, map: "DF__salesretu__Disco__19AACF41")
+  DisAmt          Decimal?        @default(0.0000, map: "DF__salesretu__DisAm__1A9EF37A") @db.Decimal(19, 4)
+  Tax             Float?          @default(0, map: "DF__salesreturn__Tax__1B9317B3")
+  Sgst            Float?          @default(0, map: "DF__salesretur__Sgst__1C873BEC")
+  Cgst            Float?          @default(0, map: "DF__salesretur__Cgst__1D7B6025")
+  Igst            Float?          @default(0, map: "DF__salesretur__Igst__1E6F845E")
+  AQty            Decimal?        @db.Decimal(16, 3)
+  LC              Decimal?        @db.Decimal(16, 3)
+  SgstAmt         Decimal?        @default(0.0000, map: "DF__salesretu__SgstA__1F63A897") @db.Decimal(19, 4)
+  CgstAmt         Decimal?        @default(0.0000, map: "DF__salesretu__CgstA__2057CCD0") @db.Decimal(19, 4)
+  IgstAmt         Decimal?        @default(0.0000, map: "DF__salesretu__IgstA__214BF109") @db.Decimal(19, 4)
+  Account         String?         @default("0", map: "DF__salesretu__Accou__22401542") @db.VarChar(50)
+  PackingCharges  Decimal?        @default(0.0000, map: "DF__salesretu__Packi__2334397B") @db.Decimal(19, 4)
+  RoundOff        Decimal?        @default(0.0000, map: "DF__salesretu__Round__24285DB4") @db.Decimal(19, 4)
+  WaiterName      String?         @db.VarChar(50)
+  CaptanName      String?         @db.VarChar(50)
+  Comperson       String?         @db.VarChar(50)
+  Color           String?         @db.VarChar(50)
+  Comper          Float?
+  ComRs           Decimal?        @db.Decimal(19, 4)
+  SalesNo         Int?
+  SMPer           Decimal?        @db.Decimal(16, 3)
+  SRPer           Decimal?        @db.Decimal(16, 3)
+  Labor           Decimal?        @db.Decimal(16, 3)
+  Convenience     Decimal?        @db.Decimal(16, 3)
+  Delivery        String?         @db.VarChar(50)
+  Documents       String?         @db.VarChar(50)
+  NoOfQty         String?         @db.VarChar(20)
+  System          String?         @db.VarChar(50)
+  Login           String?         @db.VarChar(25)
+  EditMode        String?         @db.VarChar(25)
+  LoginName       String?         @db.VarChar(25)
+  AccType         String          @db.VarChar(20)
+  Location        String?         @db.VarChar(50)
+  CounterName     String          @db.VarChar(25)
+  BranchName      String          @default("", map: "DF__salesretu__Branc__251C81ED") @db.VarChar(50)
+  MRP             Decimal?        @default(0.00, map: "DF__salesreturn__MRP__2610A626") @db.Decimal(16, 2)
+  BatchNo         String?         @db.VarChar(25)
+  CessAmt         Decimal?        @default(0, map: "DF__salesretu__CessA__38845C1C") @db.Decimal(16, 2)
+  InvoiceNo       String?         @db.VarChar(25)
+  InvoiceDate     DateTime?       @db.Date
+  ReasonIssueNote String?         @db.VarChar(25)
+  NoteType        String?         @db.VarChar(25)
+  SalesRepName    String?         @db.VarChar(50)
+  billingcounter  billingcounter  @relation(fields: [CounterName], references: [CounterName], map: "FK_salesRet_counter")
+  customermaster  customermaster? @relation(fields: [Customer], references: [Customer], onDelete: NoAction, map: "FK_salesRet_cust")
+  itemmaster      itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_salesRet_item")
+  locationmaster  locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_salesREt_loc")
+  branchmaster    branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_salesRt_br")
+
+  @@id([BillNo, Sno, AccType, BranchName], map: "salesret_pk")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model SearchColumn {
+  FieldsName  String? @db.VarChar(50)
+  FieldsWidth Float?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model selecte {
+  ReportType    String? @db.VarChar(20)
+  ReportName    String? @db.VarChar(50)
+  SelectFields  String? @db.VarChar(50)
+  Selectfieldss String? @db.VarChar(50)
+  TableName     String? @db.VarChar(50)
+  SNo           Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model selecttable {
+  FieldsName   String? @db.VarChar(255)
+  TableName    String? @db.VarChar(50)
+  Description  String? @db.VarChar(50)
+  ReportName   String? @db.VarChar(50)
+  Relationship String? @db.VarChar(100)
+  Sno          Float?  @default(0, map: "DF__selecttable__Sno__2D47B39A")
+
+  @@ignore
+}
+
+model showcolumn {
+  FormName    String  @default("", map: "DF__showcolum__FormN__30242045") @db.VarChar(50)
+  ColumnName  String  @default("", map: "DF__showcolum__Colum__3118447E") @db.VarChar(50)
+  isTrue      String? @db.VarChar(50)
+  System      String  @default("", map: "DF__showcolum__Syste__320C68B7") @db.VarChar(50)
+  ColumnWidth String? @db.VarChar(10)
+
+  @@id([FormName, ColumnName, System], map: "PK__showcolu__6B86EABEBE7F4553")
+}
+
+model showcolumns {
+  FormName String  @db.VarChar(50)
+  SysNamee String  @db.VarChar(50)
+  ColName  String  @db.VarChar(50)
+  ColWidth String? @db.VarChar(50)
+  SNo      Int?    @default(0, map: "DF__showcolumns__SNo__151B244E")
+
+  @@id([FormName, SysNamee, ColName], map: "PK__showcolu__83774BE98C283A38")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model stock {
+  BranchName   String       @default("", map: "DF__stock__BranchNam__5EAA0504") @db.VarChar(50)
+  Location     String       @default("", map: "DF__stock__Location__5F9E293D") @db.VarChar(50)
+  ItemCode     BigInt       @default(0, map: "DF__stock__ItemCode__60924D76")
+  OQty         Float?       @default(0, map: "DF__stock__OQty__618671AF")
+  PQty         Float?       @default(0, map: "DF__stock__PQty__627A95E8")
+  PRQty        Float?       @default(0, map: "DF__stock__PRQty__636EBA21")
+  SQty         Float?       @default(0, map: "DF__stock__SQty__6462DE5A")
+  Free         Float?       @default(0, map: "DF__stock__Free__65570293")
+  SRQty        Float?       @default(0, map: "DF__stock__SRQty__664B26CC")
+  SCQty        Float?       @default(0, map: "DF__stock__SCQty__673F4B05")
+  SIQty        Float?       @default(0, map: "DF__stock__SIQty__68336F3E")
+  STQty        Float?       @default(0, map: "DF__stock__STQty__69279377")
+  LTQty        Float?       @default(0, map: "DF__stock__LTQty__6A1BB7B0")
+  AQty         Float?       @default(0, map: "DF__stock__AQty__6B0FDBE9")
+  LC           Float?       @default(0, map: "DF__stock__LC__6C040022")
+  SystemName   String       @default("", map: "DF__stock__SystemNam__6CF8245B") @db.VarChar(50)
+  Disper       String?      @db.VarChar(50)
+  BatchNo      String?      @db.VarChar(50)
+  MRP          Decimal?     @default(0.00, map: "DF__stock__MRP__6DEC4894") @db.Decimal(16, 2)
+  branchmaster branchmaster @relation(fields: [BranchName], references: [BranchName], map: "FK_stock_br")
+
+  @@ignore
+}
+
+model StockCorrection {
+  Trans_Type     String          @db.VarChar(25)
+  BillNo         BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  Sno            Int
+  ItemCode       BigInt?         @default(0, map: "DF__StockCorr__ItemC__48EFCE0F")
+  Amount         Decimal?        @default(0.0000, map: "DF__StockCorr__Amoun__49E3F248") @db.Decimal(19, 4)
+  Login          String?         @db.VarChar(15)
+  LoginName      String?         @db.VarChar(25)
+  System         String?         @db.VarChar(50)
+  PhQty          Float?
+  APQty          Float?          @default(0, map: "DF__StockCorr__APQty__4AD81681")
+  ALQty          Float?          @default(0, map: "DF__StockCorr__ALQty__4BCC3ABA")
+  LC             Decimal?        @default(0.0000, map: "DF__StockCorrect__LC__4CC05EF3") @db.Decimal(19, 4)
+  EditMode       String?         @default("No", map: "DF__StockCorr__EditM__4DB4832C") @db.VarChar(3)
+  AccType        String          @db.VarChar(20)
+  Location       String?         @db.VarChar(50)
+  BranchName     String          @default("", map: "DF__StockCorr__Branc__4EA8A765") @db.VarChar(50)
+  MRP            Decimal?        @default(0.00, map: "DF__StockCorrec__MRP__4F9CCB9E") @db.Decimal(16, 2)
+  BatchNo        String?         @db.VarChar(25)
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_stockCrt_br")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_stockCrt_item")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_stockCrt_loc")
+
+  @@id([BillNo, Sno, AccType, BranchName], map: "PK__StockCor__FDE997918721B4AE")
+}
+
+model StockIssue {
+  IssueNo        BigInt
+  Trans_Date     DateTime?       @db.DateTime
+  JobCardNo      String?         @db.VarChar(25)
+  Remarks        String?         @db.VarChar(50)
+  Sno            Int
+  ItemCode       BigInt?
+  SIQty          Float?          @default(0, map: "DF__StockIssu__SIQty__4CF5691D")
+  SQty           Float?          @default(0, map: "DF__StockIssue__SQty__4DE98D56")
+  ReminQty       Float?          @default(0, map: "DF__StockIssu__Remin__4EDDB18F")
+  Units          String?         @db.VarChar(10)
+  Rate           Decimal?        @default(0.0000, map: "DF__StockIssue__Cost__4FD1D5C8") @db.Decimal(19, 4)
+  Amount         Decimal?        @default(0.0000, map: "DF__StockIssu__Amoun__50C5FA01") @db.Decimal(19, 4)
+  AvailQty       Decimal?        @db.Decimal(16, 3)
+  Color          String?         @db.VarChar(50)
+  UnitPer        Float?          @default(0, map: "DF__StockIssu__UnitP__51BA1E3A")
+  BatchNo        String?         @db.VarChar(25)
+  WaiterName     String?         @db.VarChar(50)
+  LC             Decimal?        @db.Decimal(19, 4)
+  MRP            Decimal?        @db.Decimal(19, 4)
+  Location       String?         @db.VarChar(50)
+  BranchName     String          @db.VarChar(50)
+  AccType        String          @db.VarChar(20)
+  PBillNo        BigInt?
+  SalesMan       String?         @db.VarChar(50)
+  SRate          Float?          @db.Money
+  GST            Float?
+  GSTAmt         Float?          @db.Money
+  TaxStatus      String?         @db.VarChar(10)
+  TechnicianName String?         @db.VarChar(50)
+  Qty            Float?
+  branchmaster   branchmaster    @relation(fields: [BranchName], references: [BranchName], map: "FK_Stockissue_branch")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_Stockissue_item")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_Stockissue_loc")
+  WaiterMaster   WaiterMaster?   @relation(fields: [WaiterName], references: [WaiterName], onDelete: NoAction, map: "FK_Stockissue_SalMa")
+
+  @@id([IssueNo, Sno, AccType, BranchName], map: "PK__StockIss__809DDC7E5A61491D")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model stockleadger {
+  TransDate    DateTime? @db.DateTime
+  Trans_Type   String?   @db.VarChar(50)
+  Particulars  String?   @db.VarChar(100)
+  Inward       Float?    @default(0, map: "DF__stocklead__Inwar__2B155265")
+  Outward      Float?    @default(0, map: "DF__stocklead__Outwa__2C09769E")
+  ClosingStock Float?    @default(0, map: "DF__stocklead__Closi__2CFD9AD7")
+  System       String?   @db.VarChar(50)
+
+  @@ignore
+}
+
+model tablemaster {
+  TableNo          String        @id(map: "PK__tablemas__7D5F09DDCF932E34") @db.VarChar(25)
+  TableStatus      String?       @db.VarChar(25)
+  Tableavailabilty String?       @db.VarChar(25)
+  createddate      DateTime?     @db.DateTime
+  section          String?       @db.VarChar(25)
+  sno              Int?
+  RateType         String?       @db.VarChar(20)
+  NoOfPrint        Int?          @default(0, map: "DF__tablemast__NoOfP__1367E606")
+  LoginName        String?       @db.VarChar(25)
+  WaiterName       String?       @db.VarChar(50)
+  NoOfGuests       Int?          @default(0, map: "DF__tablemast__NoOfG__147C0A3F")
+  OrderMaster      OrderMaster[]
+  sales            sales[]
+  tblCart          tblCart?
+}
+
+model tempshowcols {
+  SystemName String  @db.VarChar(50)
+  FormName   String  @db.VarChar(50)
+  ColName    String? @db.VarChar(50)
+  Colwidth   Int?    @default(0, map: "DF__tempshowc__Colwi__5555A4F4")
+
+  @@id([SystemName, FormName], map: "PK__tempshow__4C180F0BFF40A0F7")
+}
+
+model tempshowcolss {
+  SystemName String  @db.VarChar(50)
+  FormName   String  @db.VarChar(50)
+  ColName    String? @db.VarChar(50)
+  Colwidth   Int?    @default(0, map: "DF__tempshowc__Colwi__5832119F")
+
+  @@id([SystemName, FormName], map: "PK__tempshow__4C180F0B2F95D6A2")
+}
+
+model terms {
+  FormName  String  @id(map: "PK__terms__81B78A2E59348414") @db.VarChar(50)
+  Terms     String? @db.VarChar(50)
+  Alignment String? @db.VarChar(2)
+  LoginName String? @db.VarChar(50)
+}
+
+model TermsCondition {
+  RecdNo   BigInt  @id(map: "PK_TermsCondition")
+  Category String? @db.VarChar(50)
+  TermsCon String? @db.VarChar(500)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model testsum {
+  itemcode   BigInt?
+  Qty        Decimal?  @db.Decimal(16, 3)
+  LC         Decimal?  @db.Decimal(16, 3)
+  totqty     Decimal?  @db.Decimal(16, 3)
+  TRANS_DATE DateTime? @db.DateTime
+  location   String?   @db.VarChar(50)
+  BranchName String?   @db.VarChar(50)
+  Acctype    String?   @db.VarChar(50)
+  SystemName String?   @db.VarChar(50)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model TmpSales {
+  BillNo     BigInt?
+  Customer   BigInt?
+  IgstAmt    Decimal?  @db.Decimal(16, 2)
+  CgstAmt    Decimal?  @db.Decimal(16, 2)
+  SgstAmt    Decimal?  @db.Decimal(16, 2)
+  NetAmt     Decimal?  @db.Decimal(16, 2)
+  Trans_Date DateTime? @db.DateTime
+  GST        Float?
+  TaxValue   Decimal?  @db.Decimal(16, 2)
+  CessAmt    Decimal?  @default(0.00, map: "DF__TmpSales__CessAm__1DD065E0") @db.Decimal(19, 2)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tmpstock {
+  Location   String?     @db.VarChar(50)
+  ItemCode   BigInt?     @default(0, map: "DF__tmpstock__ItemCo__5C02A283")
+  Qty        Float?      @default(0, map: "DF__tmpstock__Qty__5CF6C6BC")
+  SystemName String?     @db.VarChar(50)
+  BranchName String?     @db.VarChar(50)
+  itemmaster itemmaster? @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_tmpStock_item")
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tradestock {
+  BranchName     String?         @db.VarChar(50)
+  Location       String?         @db.VarChar(50)
+  ItemCode       BigInt?         @default(0, map: "DF__tradestoc__ItemC__5FD33367")
+  UnitPer        Float?          @default(0, map: "DF__tradestoc__UnitP__60C757A0")
+  Cost           Decimal?        @db.Decimal(16, 3)
+  Type           String?         @db.VarChar(50)
+  InWgt          Decimal?        @default(0.000, map: "DF__tradestoc__InWgt__61BB7BD9") @db.Decimal(16, 3)
+  OutWgt         Decimal?        @default(0.000, map: "DF__tradestoc__OutWg__62AFA012") @db.Decimal(16, 3)
+  Tot            Decimal?        @db.Decimal(16, 3)
+  SystemName     String?         @db.VarChar(50)
+  AccType        String?         @db.VarChar(25)
+  branchmaster   branchmaster?   @relation(fields: [BranchName], references: [BranchName], onDelete: NoAction, map: "FK_trdStock_br")
+  itemmaster     itemmaster?     @relation(fields: [ItemCode], references: [ItemCode], onDelete: NoAction, map: "FK_trdStock_item")
+  locationmaster locationmaster? @relation(fields: [Location], references: [Location], onDelete: NoAction, map: "FK_trdStock_loc")
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model trs {
+  AccountName   String?        @db.VarChar(50)
+  Type          String?        @db.VarChar(8)
+  Balance       Decimal?       @default(0.0000, map: "DF__trs__Balance__6774552F") @db.Decimal(19, 4)
+  OrderBy       Int?           @default(0, map: "DF__trs__OrderBy__68687968")
+  accountmaster accountmaster? @relation(fields: [AccountName], references: [AccountName], onDelete: NoAction, map: "FK_trs_ActNam")
+
+  @@ignore
+}
+
+model typeofaccounts {
+  GroupName String  @id(map: "PK__typeofac__6EFCD4359CFDA8D1") @db.VarChar(50)
+  Location  String? @db.VarChar(25)
+  Type      String? @db.VarChar(7)
+  OrderBy   Int?    @default(0, map: "DF__typeofacc__Order__6C390A4C")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model user_details {
+  Uname   String? @db.VarChar(25)
+  MName   String? @db.VarChar(50)
+  WMenu   String? @db.VarChar(100)
+  View    String? @db.VarChar(5)
+  New     String? @db.VarChar(5)
+  Edit    String? @db.VarChar(5)
+  Delete  String? @db.VarChar(5)
+  Deleted String? @db.VarChar(50)
+
+  @@ignore
+}
+
+model userslist {
+  Uname        String        @id(map: "PK__userslis__9C5CAF9BFEDDAFCB") @db.VarChar(25)
+  PW           String?       @db.VarChar(50)
+  MobilePWD    String?       @db.VarChar(50)
+  Photo        Bytes?        @db.Image
+  Status       String?       @db.VarChar(10)
+  LoginStatus  String?       @default("Logout", map: "DF__userslist__Login__70099B30") @db.VarChar(15)
+  SystemName   String?       @db.VarChar(50)
+  BranchName   String?       @db.VarChar(50)
+  MPin         String?       @db.VarChar(100)
+  branchmaster branchmaster? @relation(fields: [BranchName], references: [BranchName], onDelete: NoAction, map: "FK_ULBM")
+}
+
+model Vendormaster {
+  Vendor         Int              @id(map: "PK__Vendorma__42A527B3AE9A7A6C") @default(0, map: "DF__Vendormas__Vendo__5EBF139D")
+  VendorName     String?          @db.VarChar(50)
+  Address        String?          @db.VarChar(50)
+  Address1       String?          @db.VarChar(50)
+  City           String?          @db.VarChar(50)
+  State          String?          @db.VarChar(25)
+  Postal         String?          @db.VarChar(20)
+  Country        String?          @db.VarChar(25)
+  ContactPerson  String?          @db.VarChar(50)
+  Phone          String?          @db.VarChar(25)
+  Mobile         String?          @db.VarChar(25)
+  Terms          Int?
+  Limit          Decimal?         @db.Decimal(19, 4)
+  ImgPhoto       Bytes?           @db.Image
+  Fax            String?          @db.VarChar(20)
+  EMail          String?          @db.VarChar(50)
+  Login          String?          @db.VarChar(25)
+  LoginName      String?          @db.VarChar(25)
+  ActiveStatus   String?          @db.VarChar(15)
+  AccountName    String?          @db.VarChar(50)
+  TINNo          String?          @db.VarChar(25)
+  CST            String?          @db.VarChar(25)
+  IAC            String?          @db.VarChar(25)
+  Area           String?          @db.VarChar(25)
+  RateType       String?          @db.VarChar(15)
+  Web            String?          @db.VarChar(50)
+  DOB            DateTime?        @db.DateTime
+  DOW            DateTime?        @db.DateTime
+  InvoiceType    String?          @default("R", map: "DF__Vendormas__Invoi__5FB337D6") @db.VarChar(50)
+  BankAcctName   String?          @db.VarChar(50)
+  AcctNo         String?          @db.VarChar(50)
+  BankName       String?          @db.VarChar(50)
+  IFSCCode       String?          @db.VarChar(20)
+  DelDays        BigInt?          @default(0, map: "DF__Vendormas__DelDa__60A75C0F")
+  BBranchName    String?          @db.VarChar(50)
+  TCS            Float?           @default(0, map: "DF__Vendormaste__TCS__33BFA6FF")
+  paybills       paybills[]
+  payments       payments[]
+  purchase       purchase[]
+  purchaseOrder  purchaseOrder[]
+  purchasereturn purchasereturn[]
+}
+
+model WaiterMaster {
+  WaiterName     String           @id(map: "PK__WaiterMa__D2078AB58B12E04F") @db.VarChar(50)
+  ContactNo      String?          @db.VarChar(50)
+  Address        String?          @db.VarChar(50)
+  City           String?          @db.VarChar(50)
+  AccountName    String?          @db.VarChar(50)
+  ActiveStatus   String?          @default("Active", map: "DF__WaiterMas__Activ__6383C8BA") @db.VarChar(15)
+  Imgphoto       String?          @db.VarChar(50)
+  Login          String?          @db.VarChar(25)
+  LoginName      String?          @default("Administrator", map: "DF__WaiterMas__Login__6477ECF3") @db.VarChar(50)
+  MPin           String?          @db.VarChar(100)
+  billcollection billcollection[]
+  OutdoorOrder   OutdoorOrder[]
+  sales          sales[]
+  SalesOrder     SalesOrder[]
+  StockIssue     StockIssue[]
+}
+
+model CartItem {
+  id         BigInt     @id @default(autoincrement())
+  CartId     String
+  ItemCode   BigInt
+  MaxRate    Decimal?   @db.Decimal(19, 4)
+  Amount     Decimal?   @db.Decimal(19, 4)
+  Qty        Float?
+  CreatedAt  DateTime   @default(now())
+  UpdatedAt  DateTime
+  tblCart    tblCart    @relation(fields: [CartId], references: [CartId], map: "FK_Cart_id")
+  itemmaster itemmaster @relation(fields: [ItemCode], references: [ItemCode], map: "FK_Cart_ItemCode")
+}
+
+model tblCart {
+  CartId         String         @id @default(uuid())
+  Customer       BigInt
+  TableNo        String         @unique @db.VarChar(25)
+  CreatedAt      DateTime       @default(now())
+  Status         String         @default("ACTIVE")
+  UpdatedAt      DateTime
+  CartItem       CartItem[]
+  customermaster customermaster @relation(fields: [Customer], references: [Customer], map: "FK_Cart_Customer")
+  tablemaster    tablemaster    @relation(fields: [TableNo], references: [TableNo], onUpdate: NoAction, map: "FK_Cart_TableNo")
+}
+
+model RegisteredDevice {
+  Id           String   @id @default(uuid())
+  DeviceId     String   @unique
+  CompanyName  String @db.VarChar(50)
+  RegisteredAt DateTime @default(now())
+  LastAccess   DateTime @default(now())
+  IsActive     Boolean  @default(true)
+  Company      Company  @relation(fields: [CompanyName], references: [CompanyName], onDelete: Cascade)
+
+  @@unique([CompanyName, DeviceId])
+}
