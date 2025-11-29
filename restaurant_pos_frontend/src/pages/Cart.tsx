@@ -3,7 +3,7 @@ import { AppDispatch, RootState } from "../redux/store";
 import CartCard from "../components/ui/CartCard";
 import { getCartTotal } from "../redux/cart/cartSlice";
 import { Button, Card, CardBody } from "@nextui-org/react";
-import { createOrder } from "../redux/orders/orderAction";
+import { createOrder, insertPrintOrder } from "../redux/orders/orderAction";
 import { getCartSync } from "../redux/cart/cartAction";
 import emptyCart from "../assets/images/empty-cart.png";
 import { useEffect, useState } from "react";
@@ -29,7 +29,12 @@ const Cart = () => {
   const handleOrder = async () => {
     try {
       const orderData = { items: cartItems };
-      await dispatch(createOrder(orderData)).unwrap();
+      
+      const orderNo = await dispatch(createOrder(orderData)).unwrap();
+
+      await dispatch(insertPrintOrder(orderNo)).unwrap();
+
+      // Sync cart after successful order and print insertion
       await dispatch(getCartSync()).unwrap();
     } catch (error) {
       console.error("Failed to create order:", error);
@@ -60,7 +65,7 @@ const Cart = () => {
                   className="!bg-warning-400 !text-black"
                   radius="full"
                 >
-                  Checkout
+                  Send to Kitchen
                 </Button>
               </CardBody>
             </Card>

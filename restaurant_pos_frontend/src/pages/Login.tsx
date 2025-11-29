@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import WaiterAutocomplete from "../components/ui/WaiterAutoComplete";
 import { Key } from "@react-types/shared";
+import UserAutocomplete from "../components/ui/UsersAutocomplete";
 
 const Login = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -19,11 +20,6 @@ const Login = () => {
   const handleRoleChange = (key: Key) => {
     const newRole = key as "kitchen" | "waiter";
     setRole(newRole);
-    if (newRole === "kitchen") {
-      setUsername("Kitchen");
-    } else {
-      setUsername(null);
-    }
     setError({});
   };
 
@@ -48,7 +44,7 @@ const Login = () => {
         console.log("username", username);
         let isLogged;
         if (role === "kitchen") {
-          isLogged = await dispatch(signIn("Kitchen", mpin, role));
+          isLogged = await dispatch(signIn(username, mpin, role));
         } else {
           isLogged = await dispatch(signIn(username, mpin, role));
         }
@@ -88,8 +84,10 @@ const Login = () => {
             <Tab key="kitchen" title="Kitchen"></Tab>
             <Tab key="waiter" title="Waiter"></Tab>
           </Tabs>
-          {role === "waiter" && (
+          {role === "waiter" ? (
             <WaiterAutocomplete onWaiterSelect={setUsername} />
+          ) : (
+            <UserAutocomplete onUserSelect={setUsername} />
           )}
           <div className="flex self-center mt-3">
             <InputOtp

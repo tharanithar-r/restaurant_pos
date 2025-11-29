@@ -5,7 +5,17 @@ import { CartItem } from "../cart/cartSlice";
 import { RootState } from "../store";
 import { setTableList } from "../table/tableSlice";
 
-const backendURL = import.meta.env.VITE_BACKEND_URL;
+const runtimeBackend =
+  window?.runtimeConfig?.BACKEND_URL &&
+  window.runtimeConfig.BACKEND_URL.trim() !== ""
+    ? window.runtimeConfig.BACKEND_URL
+    : null;
+
+// Fallback to build-time .env (Vite)
+const viteBackend = import.meta.env.VITE_BACKEND_URL || "";
+
+// Final backend URL
+export const backendURL = runtimeBackend || viteBackend;
 
 export const createOrder = createAsyncThunk<
   string,
@@ -44,7 +54,8 @@ export const createOrder = createAsyncThunk<
         dispatch(setTableList(res.data.tables));
       }
 
-      return res.data.message;
+      // Return the order number from backend response
+      return res.data.orderNo;
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         return rejectWithValue(err.response.data);
@@ -163,6 +174,31 @@ export const deleteItem = createAsyncThunk<
         return rejectWithValue(err.response.data);
       }
       return rejectWithValue("Failed to delete item");
+    }
+  }
+);
+
+export const insertPrintOrder = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: string }
+>(
+  "orders/insertPrintOrder",
+  async (orderNo: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${backendURL}/api/v1/order/print`,
+        { orderNo },
+        {
+          withCredentials: true,
+        }
+      );
+      return response.data.message;
+    } catch (err) {
+      if (err instanceof AxiosError && err.response) {
+        return rejectWithValue(err.response.data);
+      }
+      return rejectWithValue("Failed to insert print order");
     }
   }
 );

@@ -4,7 +4,16 @@ import axios from "axios";
 import { clearAuth, setAuth, setAuthError, setAuthLoading } from "./authSlice";
 import { getDeviceId } from "../../utils/deviceUtils";
 
-const backendURL = import.meta.env.VITE_BACKEND_URL || "";
+
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+console.log("Backend URL:", backendURL);
+console.log("All VITE env vars:", {
+  VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
+  MODE: import.meta.env.MODE,
+  DEV: import.meta.env.DEV,
+  PROD: import.meta.env.PROD,
+});
 
 const api = axios.create({
   baseURL: backendURL,
@@ -34,7 +43,7 @@ export const signIn =
         },
       });
 
-      const res = await authApi.post(`/api/v1/${apiRole}/signin`, {
+      const res = await authApi.post(`${backendURL}/api/v1/${apiRole}/signin`, {
         username,
         password,
       });
@@ -62,11 +71,11 @@ export const signOut = () => async (dispatch: any, getState: any) => {
 
     let signoutEndpoint;
     if (role === "kitchen") {
-      signoutEndpoint = `/api/v1/user/signout`;
+      signoutEndpoint = `${backendURL}/api/v1/user/signout`;
     } else if (role === "waiter") {
-      signoutEndpoint = `/api/v1/waiter/signout`;
+      signoutEndpoint = `${backendURL}/api/v1/waiter/signout`;
     } else {
-      signoutEndpoint = `/api/v1/waiter/signout`;
+      signoutEndpoint = `${backendURL}/api/v1/waiter/signout`;
     }
 
     const response = await api.get(signoutEndpoint, { withCredentials: true });

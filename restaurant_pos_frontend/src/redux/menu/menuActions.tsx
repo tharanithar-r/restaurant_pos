@@ -1,7 +1,17 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const backendURL = import.meta.env.VITE_BACKEND_URL;
+const runtimeBackend =
+  window?.runtimeConfig?.BACKEND_URL &&
+  window.runtimeConfig.BACKEND_URL.trim() !== ""
+    ? window.runtimeConfig.BACKEND_URL
+    : null;
+
+// Fallback to build-time .env (Vite)
+const viteBackend = import.meta.env.VITE_BACKEND_URL || "";
+
+// Final backend URL
+export const backendURL = runtimeBackend || viteBackend;
 
 export const getItemByBarcode = async (barcode: string) => {
   try {

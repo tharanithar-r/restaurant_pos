@@ -202,14 +202,6 @@ const Order = () => {
                     &#8377;{Intl.NumberFormat("en-IN").format(orderTotal)}
                   </label>
                 </div>
-                <Button
-                  fullWidth
-                  className="!bg-warning-400 !text-black"
-                  radius="full"
-                  onPress={() => handleBillOrder()}
-                >
-                  Print
-                </Button>
               </CardBody>
             </Card>
           </div>

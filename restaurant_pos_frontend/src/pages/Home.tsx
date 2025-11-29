@@ -27,7 +27,17 @@ import { LogoutIcon } from "../components/icons/LogoutIcon";
 import { signOut } from "../redux/auth/authActions";
 import { selectCurrentAuth } from "../redux/auth/authSlice";
 
-const backendURL = import.meta.env.VITE_BACKEND_URL;
+const runtimeBackend =
+  window?.runtimeConfig?.BACKEND_URL &&
+  window.runtimeConfig.BACKEND_URL.trim() !== ""
+    ? window.runtimeConfig.BACKEND_URL
+    : null;
+
+// Fallback to build-time .env (Vite)
+const viteBackend = import.meta.env.VITE_BACKEND_URL || "";
+
+// Final backend URL
+export const backendURL = runtimeBackend || viteBackend;
 
 const Home = () => {
   const [selectedTable, setSelectedTable] = useState<string>("");
@@ -126,16 +136,16 @@ const Home = () => {
 
   return (
     <>
-      <div className='p-4'>
-        <div className='flex justify-between items-center mb-4'>
-          <div className='w-10'></div>
-          <h2 className='text-xl font-bold flex-1 text-center'>Tables</h2>
-          <Button className='w-10' onPress={() => handleSignOut()} isIconOnly>
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="w-10"></div>
+          <h2 className="text-xl font-bold flex-1 text-center">Tables</h2>
+          <Button className="w-10" onPress={() => handleSignOut()} isIconOnly>
             <LogoutIcon />
           </Button>
         </div>
-        <Divider className='mb-3' />
-        <div className='grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-2'>
+        <Divider className="mb-3" />
+        <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-2">
           {filteredTables.map((table) => (
             <Card
               key={table.TableNo}
@@ -152,27 +162,27 @@ const Home = () => {
               }
             >
               {prepCounts[table.TableNo] > 0 && (
-                <div className='absolute top-2 right-2'>
-                  <div className='bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold'>
+                <div className="absolute top-2 right-2">
+                  <div className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">
                     {prepCounts[table.TableNo]}
                   </div>
                 </div>
               )}
-              <CardBody className='flex flex-col items-center justify-center p-0 text-black'>
-                <div className='font-bold text-lg'>{table.TableNo}</div>
+              <CardBody className="flex flex-col items-center justify-center p-0 text-black">
+                <div className="font-bold text-lg">{table.TableNo}</div>
               </CardBody>
-              <CardFooter className='text-black flex justify-center items-center'>
+              <CardFooter className="text-black flex justify-center items-center">
                 {table.TableStatus ? (
                   <>
-                    <div className='flex flex-row items-center justify-center gap-1 mt-1'>
-                      <GroupIcon color='black' />
-                      <div className='font-semibold mt-1'>
+                    <div className="flex flex-row items-center justify-center gap-1 mt-1">
+                      <GroupIcon color="black" />
+                      <div className="font-semibold mt-1">
                         {table.NoOfGuests}
                       </div>
                     </div>
                   </>
                 ) : (
-                  <div className='text-sm font-medium mt-2'>
+                  <div className="text-sm font-medium mt-2">
                     {table.TableStatus || "Available"}
                   </div>
                 )}
@@ -185,26 +195,26 @@ const Home = () => {
       <Drawer
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        placement='bottom'
-        className='text-white bg-gray-800'
+        placement="bottom"
+        className="text-white bg-gray-800"
       >
         <DrawerContent>
           {() => (
             <>
-              <DrawerHeader className='flex items-center justify-center gap-1'>
+              <DrawerHeader className="flex items-center justify-center gap-1">
                 Guest Info
-                <label className='font-semibold text-warning'>
+                <label className="font-semibold text-warning">
                   {selectedTable}
                 </label>
               </DrawerHeader>
-              <DrawerBody className='flex flex-row items-center justify-between gap-4'>
+              <DrawerBody className="flex flex-row items-center justify-between gap-4">
                 <div>No. of Guests: </div>
-                <span className='font-semibold'>{newOrderMember}</span>
-                <div className='flex flex-row items-center gap-2'>
+                <span className="font-semibold">{newOrderMember}</span>
+                <div className="flex flex-row items-center gap-2">
                   <Button
-                    variant='ghost'
-                    color='primary'
-                    className='!text-large'
+                    variant="ghost"
+                    color="primary"
+                    className="!text-large"
                     onClick={() => {
                       if (newOrderMember - 1 >= 1) {
                         setNewOrderMember(newOrderMember - 1);
@@ -214,8 +224,8 @@ const Home = () => {
                     -
                   </Button>
                   <Button
-                    variant='ghost'
-                    color='primary'
+                    variant="ghost"
+                    color="primary"
                     onClick={() => setNewOrderMember(newOrderMember + 1)}
                   >
                     +
@@ -224,7 +234,7 @@ const Home = () => {
               </DrawerBody>
               <DrawerFooter>
                 <Button
-                  color='primary'
+                  color="primary"
                   fullWidth
                   onPress={() => handleNewOrderCreate()}
                 >
