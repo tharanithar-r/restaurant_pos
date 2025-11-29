@@ -7,14 +7,6 @@ import { getDeviceId } from "../../utils/deviceUtils";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
-console.log("Backend URL:", backendURL);
-console.log("All VITE env vars:", {
-  VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
-  MODE: import.meta.env.MODE,
-  DEV: import.meta.env.DEV,
-  PROD: import.meta.env.PROD,
-});
-
 const api = axios.create({
   baseURL: backendURL,
   withCredentials: true,

@@ -2,7 +2,6 @@ import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../redux/store";
 import {
-  billOrder,
   deleteItem,
   getOrdersSync,
   serveItem,
@@ -58,14 +57,14 @@ const Order = () => {
     fetchData();
   }, [dispatch, withLoading]);
 
-  const handleBillOrder = async () => {
-    try {
-      await dispatch(billOrder());
-      await dispatch(getOrdersSync());
-    } catch (error) {
-      console.error("Error in handleBillOrder:", error);
-    }
-  };
+  // const handleBillOrder = async () => {
+  //   try {
+  //     await dispatch(billOrder());
+  //     await dispatch(getOrdersSync());
+  //   } catch (error) {
+  //     console.error("Error in handleBillOrder:", error);
+  //   }
+  // };
 
   const groupedOrders = useMemo(() => {
     console.log("Grouping orders:", orderslist);

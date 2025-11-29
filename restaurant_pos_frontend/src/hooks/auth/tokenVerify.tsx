@@ -3,17 +3,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { setAuth } from "../../redux/auth/authSlice";
 
-const runtimeBackend =
-  window?.runtimeConfig?.BACKEND_URL &&
-  window.runtimeConfig.BACKEND_URL.trim() !== ""
-    ? window.runtimeConfig.BACKEND_URL
-    : null;
-
-// Fallback to build-time .env (Vite)
-const viteBackend = import.meta.env.VITE_BACKEND_URL || "";
-
-// Final backend URL
-export const backendURL = runtimeBackend || viteBackend;
+const backendURL = import.meta.env.VITE_BACKEND_URL ;
 
 const TokenVerify = () => {
   const dispatch = useDispatch();

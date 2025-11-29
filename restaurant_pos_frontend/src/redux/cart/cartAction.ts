@@ -3,17 +3,7 @@ import axios, { AxiosError } from "axios";
 import { CartItem } from "./cartSlice";
 import { RootState } from "../store";
 
-const runtimeBackend =
-  window?.runtimeConfig?.BACKEND_URL &&
-  window.runtimeConfig.BACKEND_URL.trim() !== ""
-    ? window.runtimeConfig.BACKEND_URL
-    : null;
-
-// Fallback to build-time .env (Vite)
-const viteBackend = import.meta.env.VITE_BACKEND_URL || "";
-
-// Final backend URL
-export const backendURL = runtimeBackend || viteBackend;
+const backendURL = import.meta.env.VITE_BACKEND_URL ;
 
 interface DeleteCartResponse {
   success: boolean;

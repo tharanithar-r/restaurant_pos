@@ -11,8 +11,8 @@ import { secretmanager } from "googleapis/build/src/apis/secretmanager";
 
 const setCookieOptions = {
   httpOnly: true,
-  secure: true, // Required for sameSite: "none"
-  sameSite: "none" as const, // Allow cross-origin cookies
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : ("lax" as const),
   path: "/",
   maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
 };
@@ -182,8 +182,8 @@ export const signoutService = (req: any, res: any) => {
   try {
     const clearCookieOptions = {
       httpOnly: true,
-      secure: true,
-      sameSite: "none" as const,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
     };
 
