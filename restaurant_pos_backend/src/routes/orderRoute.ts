@@ -7,6 +7,7 @@ import {
   deleteOrderService,
   newOrder,
   prepItemsCountService,
+  insertPrintOrderService,
 } from "../services/order/orderService";
 
 const router = Router();
@@ -17,5 +18,6 @@ router.post("/delete", protect, deleteOrderService);
 router.get("/ordersbyId", protect, currentOrdersService);
 router.get("/prepItemData", protect, prepItemsCountService);
 router.post("/bill", protect, billOrderService);
+router.post("/print", protect, insertPrintOrderService);
 
 export default router;

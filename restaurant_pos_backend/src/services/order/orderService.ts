@@ -8,17 +8,19 @@ import { changeItemStatus } from "../../actions/kitchen/changeItemStatus";
 import { clearCart } from "../../actions/cart/clearCart";
 import { changeTableStatus } from "../../actions/table/changeTableStatus";
 import { deleteOrder } from "../../actions/orders/deleteOrder";
+import { insertprtOrderNo } from "../../actions/printTbl/insertOrderno";
 
 export const newOrder = async (req: any, res: any) => {
   try {
     const { orderData, customerID, tableNo, waiter, guestCount } = req.body;
-    await insertOrderAction(orderData, customerID, tableNo, waiter, guestCount);
+    const orderNo = await insertOrderAction(orderData, customerID, tableNo, waiter, guestCount);
 
     // Get updated table list
     const tables = await getTables("");
 
     res.status(200).json({
       message: "Order created successfully",
+      orderNo: orderNo.toString(),
       tables,
     });
   } catch (err: any) {
@@ -87,5 +89,33 @@ export const deleteOrderService = async (req: any, res: any) => {
   } catch (err) {
     console.error("Error deleting order item: ", err);
     res.status(401).json(err.message);
+  }
+};
+
+export const insertPrintOrderService = async (req: any, res: any) => {
+  try {
+    const { orderNo } = req.body;
+
+    if (!orderNo) {
+      return res.status(400).json({ message: "Order number is required" });
+    }
+
+    const printRecord = await insertprtOrderNo(orderNo.toString());
+
+    if (!printRecord) {
+      return res.status(400).json({ message: "Failed to insert print order" });
+    }
+
+    if ("message" in printRecord) {
+      return res.status(400).json(printRecord);
+    }
+
+    res.status(200).json({
+      message: "Order added to print queue successfully",
+      data: printRecord,
+    });
+  } catch (err: any) {
+    console.error("Error inserting print order: ", err);
+    res.status(500).json({ message: err.message });
   }
 };

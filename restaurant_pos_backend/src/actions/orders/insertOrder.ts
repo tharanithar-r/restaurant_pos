@@ -15,7 +15,7 @@ export const insertOrderAction = async (
   tableNo: any,
   waiter: any,
   guestCount?: any
-) => {
+): Promise<bigint> => {
   try {
     const cartId = await prisma.tblCart.findUnique({
       where: { TableNo: tableNo },
@@ -76,6 +76,7 @@ export const insertOrderAction = async (
     }
 
     await clearCart(tableNo);
+    return orderNo;
   } catch (err: any) {
     console.error("Error inserting order: ", err);
     throw new Error("Error inserting order");
